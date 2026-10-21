@@ -26,12 +26,12 @@
 @endphp
 
 <li wire:key="item-{{ $item->id }}-{{ $done ? 1 : 0 }}-{{ $item->claimed_by ?? 0 }}" x-data="{ flip: false, claim: false }"
-    @class([
+    {{ $attributes->class([
         'relative flex items-center gap-1 overflow-hidden rounded-2xl border pr-2 transition-colors',
         'border-dashed border-ink-600 bg-transparent' => $done,
         'border-primary-line/50 bg-ink-900' => ! $done && $claimedByMe,
         'border-ink-700 bg-ink-900' => ! $done && ! $claimedByMe,
-    ])>
+    ]) }}>
     @if ($isUrgent && ! $done)
         <span class="absolute inset-y-3 left-0 w-1 rounded-r-full bg-urgent-400" aria-hidden="true"></span>
     @endif

@@ -161,9 +161,9 @@
                             <span class="text-[13px] text-ink-400">{{ $priority->hint() }}</span>
                         @endif
                     </h2>
-                    <ul class="mt-2.5 space-y-1.5">
+                    <ul class="mt-2.5 min-h-12 space-y-1.5" wire:sort="sortItem" wire:sort:group="items" wire:sort:group-id="{{ $priority->value }}">
                         @foreach ($groupItems as $item)
-                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" />
+                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" wire:sort:item="{{ $item->id }}" />
                         @endforeach
                     </ul>
                 </section>

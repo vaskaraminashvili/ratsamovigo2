@@ -460,6 +460,38 @@ class Show extends Component
         );
     }
 
+    /**
+     * Drop an item at a place in a priority group. Dropping it into another group
+     * changes its priority.
+     */
+    public function sortItem(int $itemId, int $position, string $priority): void
+    {
+        Gate::authorize('view', $this->shoppingList);
+
+        $level = Priority::tryFrom($priority) ?? abort(422);
+
+        $item = $this->shoppingList->items()->whereNull('bought_at')->whereNull('group_name')->findOrFail($itemId);
+
+        $ids = $this->shoppingList->items()
+            ->whereNull('bought_at')
+            ->whereNull('group_name')
+            ->where('priority', $level)
+            ->whereKeyNot($itemId)
+            ->get()
+            ->sortBy(fn (ListItem $sibling) => $sibling->position ?? PHP_INT_MAX)
+            ->pluck('id')
+            ->values()
+            ->all();
+
+        array_splice($ids, max(0, min($position, count($ids))), 0, [$itemId]);
+
+        $item->update(['priority' => $level]);
+
+        foreach ($ids as $index => $id) {
+            $this->shoppingList->items()->whereKey($id)->update(['position' => $index + 1]);
+        }
+    }
+
     public function toggleBought(int $itemId): void
     {
         Gate::authorize('view', $this->shoppingList);
@@ -646,7 +678,7 @@ class Show extends Component
             'savedItems' => $savedItems,
             'savedKeys' => $savedItems->pluck('name_key')->all(),
             'members' => $this->shoppingList->members()->get(),
-            'openItems' => $open->sortBy(fn (ListItem $item) => $item->priority->sortOrder())->values(),
+            'openItems' => $open->sortBy(fn (ListItem $item) => [$item->priority->sortOrder(), $item->position ?? PHP_INT_MAX])->values(),
             'boughtItems' => $bought,
             'hideBought' => $hide,
             'inviteUrl' => route('join.show', $this->shoppingList->invite_token),

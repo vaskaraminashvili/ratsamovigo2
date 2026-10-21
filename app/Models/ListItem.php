@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property float|null $quantity
  * @property Unit $unit
  * @property Priority $priority
+ * @property int|null $position
  * @property int|null $bought_by
  * @property Carbon|null $bought_at
  * @property int|null $catalog_product_id
@@ -32,7 +33,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $catalog_url
  */
 #[Fillable([
-    'shopping_list_id', 'added_by', 'claimed_by', 'name', 'group_name', 'quantity', 'unit', 'priority', 'bought_by', 'bought_at',
+    'shopping_list_id', 'added_by', 'claimed_by', 'name', 'group_name', 'quantity', 'unit', 'priority', 'position', 'bought_by', 'bought_at',
     'catalog_product_id', 'catalog_store_name', 'catalog_store_slug', 'catalog_price', 'catalog_unit', 'catalog_url',
 ])]
 class ListItem extends Model
