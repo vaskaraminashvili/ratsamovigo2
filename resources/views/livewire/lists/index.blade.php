@@ -54,15 +54,15 @@
             <h2 id="lists-h" class="text-lg font-bold">ჩემი სიები</h2>
 
             @if ($lists->isNotEmpty())
-            <ul class="mt-2 divide-y divide-ink-800">
+            <ul class="mt-2 divide-y divide-ink-800" wire:sort="sortList">
             @foreach ($lists as $list)
                 @php
                     $total = $list->left_count + $list->done_count;
                     $progress = $total > 0 ? round($list->done_count / $total * 100) : 0;
                     $tints = ['bg-primary-400/15 text-primary-300', 'bg-urgent-400/15 text-urgent-300', 'bg-cart-400/15 text-cart-fg'];
                 @endphp
-                <li wire:key="list-{{ $list->id }}">
-                    <a href="{{ route('lists.show', $list) }}" wire:navigate class="group flex items-center gap-4 py-4">
+                <li wire:key="list-{{ $list->id }}" wire:sort:item="{{ $list->id }}" class="flex items-center">
+                    <a href="{{ route('lists.show', $list) }}" wire:navigate class="group flex min-w-0 flex-1 items-center gap-4 py-4">
                         <span class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl text-xl font-bold {{ $tints[$list->id % 3] }}">
                             @if ($list->coverUrl())
                                 <img src="{{ $list->coverUrl() }}" alt="" class="size-full object-cover" loading="lazy">
@@ -88,6 +88,9 @@
                             @endforeach
                         </div>
                     </a>
+                    <span wire:sort:handle class="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-full text-ink-500 hover:bg-ink-800" aria-label="გადასატანად" title="გადატანა">
+                        <svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"/></svg>
+                    </span>
                 </li>
             @endforeach
             </ul>

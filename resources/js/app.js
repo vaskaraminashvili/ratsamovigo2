@@ -3,11 +3,15 @@
  * client so the quantity stepper is instant; Livewire is only called on submit.
  */
 window.listPage = function ({ units }) {
-    const blank = () => ({ id: null, name: '', qty: null, unit: 'ცალი', urgent: false, priority: 'normal', saved: false, group: null });
+    const blank = () => ({ id: null, name: '', qty: null, unit: 'ცალი', urgent: false, priority: 'normal', saved: false, group: null, catalog: null, meta: '' });
 
     return {
         units,
+        suggestions: [],
+        searchSeq: 0,
+        searchTimer: null,
         sheet: null,
+        view: 'list',
         addMenu: false,
         showHidden: false,
         pick: [],
@@ -19,7 +23,56 @@ window.listPage = function ({ units }) {
         copied: false,
         draft: blank(),
         edit: blank(),
-        settings: { name: '', group: true, behavior: 'strike' },
+        settings: { name: '', group: true, behavior: 'strike', fetchPrice: false },
+
+        init() {
+            this.$watch('draft.name', (value) => this.onDraftName(value));
+        },
+
+        /**
+         * Price lookup is opt-in per list (data-fetch-price on the root element) and only starts
+         * from 3 characters, after a short pause in typing.
+         */
+        onDraftName(value) {
+            clearTimeout(this.searchTimer);
+            this.searchSeq++;
+
+            const typed = value.trim();
+
+            if (this.draft.catalog && this.draft.catalog.name !== typed) {
+                this.draft.catalog = null;
+            }
+
+            if (this.draft.catalog || typed.length < 3 || this.$root.dataset.fetchPrice !== '1') {
+                this.suggestions = [];
+
+                return;
+            }
+
+            this.searchTimer = setTimeout(() => this.searchProducts(typed), 400);
+        },
+
+        async searchProducts(query) {
+            const seq = ++this.searchSeq;
+
+            try {
+                const rows = await this.$wire.searchProducts(query);
+
+                if (seq === this.searchSeq) {
+                    this.suggestions = Array.isArray(rows) ? rows : [];
+                }
+            } catch (e) {
+                if (seq === this.searchSeq) {
+                    this.suggestions = [];
+                }
+            }
+        },
+
+        pickSuggestion(row) {
+            this.draft.name = row.name;
+            this.draft.catalog = row;
+            this.suggestions = [];
+        },
 
         fmt(n) {
             return String(n).replace('.', ',');
@@ -66,11 +119,11 @@ window.listPage = function ({ units }) {
                 return;
             }
 
-            const { qty, unit, priority } = this.draft;
+            const { qty, unit, priority, catalog } = this.draft;
             this.draft = blank();
             this.addMenu = false;
 
-            await this.$wire.addItem(name, qty, unit, priority === 'urgent', priority);
+            await this.$wire.addItem(name, qty, unit, priority === 'urgent', priority, catalog);
         },
 
         matchesDraft(key) {
@@ -140,6 +193,7 @@ window.listPage = function ({ units }) {
                 priority: item.priority,
                 saved: item.saved,
                 group: item.group,
+                meta: item.meta ?? '',
             };
             this.sheet = 'item';
         },
@@ -162,16 +216,16 @@ window.listPage = function ({ units }) {
             await this.$wire.deleteItem(id);
         },
 
-        openSettings(name, group, behavior) {
-            this.settings = { name, group, behavior };
+        openSettings(name, group, behavior, fetchPrice) {
+            this.settings = { name, group, behavior, fetchPrice };
             this.sheet = 'settings';
         },
 
         async saveSettings() {
-            const { name, group, behavior } = this.settings;
+            const { name, group, behavior, fetchPrice } = this.settings;
             this.sheet = null;
 
-            await this.$wire.saveSettings(name, group, behavior);
+            await this.$wire.saveSettings(name, group, behavior, fetchPrice);
         },
 
         async copyInvite(url) {

@@ -5,7 +5,7 @@
     $icon = fn (string $d) => '<svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="'.$d.'"/></svg>';
 @endphp
 
-<div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" @click.outside="addMenu = false">
+<div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price ? '1' : '0' }}" @click.outside="addMenu = false">
     <header class="sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[max(.75rem,env(safe-area-inset-top))] backdrop-blur">
         <div class="flex items-center gap-1">
             <a href="{{ route('lists.index') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="ჩემს სიებზე დაბრუნება">
@@ -23,7 +23,7 @@
                 </span>
             </button>
             @if ($isOwner)
-                <button type="button" @click="openSettings(@js($shoppingList->name), @js($grouped), @js($shoppingList->bought_behavior->value))"
+                <button type="button" @click="openSettings(@js($shoppingList->name), @js($grouped), @js($shoppingList->bought_behavior->value), @js($shoppingList->fetch_best_price))"
                         class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="სიის პარამეტრები">
                     <svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/></svg>
                 </button>
@@ -33,6 +33,33 @@
     </header>
 
     <main class="px-5">
+        <div class="mt-1 grid grid-cols-2 rounded-2xl border border-ink-700 bg-ink-900 p-1 text-[14px] font-semibold" role="tablist">
+            @foreach (['list' => 'სია', 'activity' => 'აქტივობა'] as $tab => $tabLabel)
+                <button type="button" role="tab" @click="view = '{{ $tab }}'" :aria-selected="(view === '{{ $tab }}').toString()"
+                        class="min-h-10 rounded-xl transition"
+                        :class="view === '{{ $tab }}' ? 'bg-ink-700 text-ink-100' : 'text-ink-400'">{{ $tabLabel }}</button>
+            @endforeach
+        </div>
+
+        <section x-show="view === 'activity'" x-cloak aria-label="აქტივობა" class="mt-4">
+            @if ($activity->isEmpty())
+                <p class="py-10 text-center text-[15px] text-ink-400">ჯერ არაფერი მომხდარა.</p>
+            @else
+                <ul class="divide-y divide-ink-800 rounded-2xl border border-ink-700 bg-ink-900 px-4">
+                    @foreach ($activity as $event)
+                        <li class="flex items-start gap-3 py-3">
+                            <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold text-on {{ $event['user']->avatarColorClass() }}">{{ $event['user']->initials() }}</span>
+                            <div class="min-w-0">
+                                <p class="text-[15px] leading-snug"><span class="font-semibold">{{ $event['user']->id === auth()->id() ? 'შენ' : $event['user']->name }}</span> {{ $event['text'] }}</p>
+                                <p class="mt-0.5 text-[13px] text-ink-400">{{ $event['at']->locale('ka')->diffForHumans() }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        <div x-show="view === 'list'">
         @if ($shoppingList->coverUrl())
             <img src="{{ $shoppingList->coverUrl() }}" alt="" class="mt-1 aspect-[16/7] w-full rounded-3xl object-cover" loading="lazy">
         @endif
@@ -134,9 +161,9 @@
                             <span class="text-[13px] text-ink-400">{{ $priority->hint() }}</span>
                         @endif
                     </h2>
-                    <ul class="mt-2.5 space-y-1.5">
+                    <ul class="mt-2.5 min-h-12 space-y-1.5" wire:sort="sortItem" wire:sort:group="items" wire:sort:group-id="{{ $priority->value }}">
                         @foreach ($groupItems as $item)
-                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" />
+                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" wire:sort:item="{{ $item->id }}" />
                         @endforeach
                     </ul>
                 </section>
@@ -227,10 +254,11 @@
                 </section>
             @endif
         @endif
+        </div>
     </main>
 
     {{-- Quick add --}}
-    <div class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
+    <div x-show="view === 'list'" class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
         @if ($savedItems->isNotEmpty() || $boughtItems->isNotEmpty())
             <div class="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
                 @foreach ($boughtItems->unique(fn ($bought) => \App\Models\SavedItem::keyFor($bought->name))->take(15) as $bought)
@@ -277,6 +305,15 @@
             </div>
         </div>
 
+        <div x-show="suggestions.length" x-cloak x-transition.opacity class="mb-2 max-h-64 overflow-y-auto rounded-2xl border border-ink-700 bg-ink-850 shadow-[0_20px_40px_-15px_var(--shade)]" role="listbox" aria-label="ფასების შემოთავაზებები">
+            <template x-for="(row, index) in suggestions" :key="row.product_id + '-' + index">
+                <button type="button" role="option" @click="pickSuggestion(row)" class="block min-h-12 w-full border-b border-ink-700 px-4 py-2.5 text-left last:border-b-0 hover:bg-ink-800">
+                    <span class="block truncate text-[15px] font-medium" x-text="row.name"></span>
+                    <span class="block truncate text-[13px] text-primary-300" x-text="row.caption"></span>
+                </button>
+            </template>
+        </div>
+
         <form @submit.prevent="add()" class="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 p-1.5 shadow-[0_20px_40px_-15px_var(--shade)] focus-within:border-primary-line">
             <label for="draft" class="sr-only">ნივთის დამატება</label>
             <input id="draft" x-model="draft.name" enterkeyhint="done" autocomplete="off" maxlength="120"
@@ -303,6 +340,7 @@
             <div>
                 <label for="edit-name" class="field-label">ნივთის სახელი</label>
                 <input id="edit-name" class="field" x-model="edit.name" maxlength="120" autocomplete="off">
+                <p x-show="edit.meta" x-text="edit.meta" class="mt-1.5 text-[13px] text-ink-400"></p>
             </div>
 
             <x-qty-picker target="edit" />
@@ -583,6 +621,14 @@
                         @endforeach
                     </div>
                 </fieldset>
+
+                <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5">
+                    <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="settings.fetchPrice">
+                    <span>
+                        <span class="block font-semibold">საუკეთესო ფასის ძებნა</span>
+                        <span class="block text-[13px] text-ink-400">ნივთის სახელის აკრეფისას მაღაზიების ფასებს შემოგთავაზებს.</span>
+                    </span>
+                </label>
 
                 <button type="submit" class="btn-primary w-full" :disabled="!settings.name.trim()">შენახვა</button>
                 <button type="button" wire:click="deleteList" wire:confirm="სია სამუდამოდ წაიშლება ყველასთვის. გაგრძელება?" class="btn-danger w-full">სიის წაშლა</button>

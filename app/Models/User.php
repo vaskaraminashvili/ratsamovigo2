@@ -57,7 +57,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function shoppingLists(): BelongsToMany
     {
-        return $this->belongsToMany(ShoppingList::class)->withTimestamps();
+        return $this->belongsToMany(ShoppingList::class)->withPivot('position')->withTimestamps();
     }
 
     /**

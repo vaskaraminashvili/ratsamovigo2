@@ -44,6 +44,30 @@ class Index extends Component
         $this->dispatch('toast', message: "სია „{$list->name}“ შეიქმნა");
     }
 
+    /**
+     * Move a list to a new place in the current user's own ordering.
+     */
+    public function sortList(int $listId, int $position): void
+    {
+        $user = auth()->user();
+        $user->shoppingLists()->whereKey($listId)->firstOrFail();
+
+        $ids = $user->shoppingLists()
+            ->orderByRaw('shopping_list_user.position is not null')
+            ->orderBy('shopping_list_user.position')
+            ->latest('shopping_lists.created_at')
+            ->pluck('shopping_lists.id')
+            ->reject(fn (int $id) => $id === $listId)
+            ->values()
+            ->all();
+
+        array_splice($ids, max(0, min($position, count($ids))), 0, [$listId]);
+
+        foreach ($ids as $index => $id) {
+            $user->shoppingLists()->updateExistingPivot($id, ['position' => $index + 1]);
+        }
+    }
+
     public function markNotificationsRead(): void
     {
         auth()->user()->unreadNotifications()->update(['read_at' => now()]);
@@ -93,6 +117,8 @@ class Index extends Component
                 'items as urgent_count' => fn ($query) => $query->whereNull('bought_at')->where('priority', Priority::Urgent),
                 'items as done_count' => fn ($query) => $query->whereNotNull('bought_at'),
             ])
+            ->orderByRaw('shopping_list_user.position is not null')
+            ->orderBy('shopping_list_user.position')
             ->latest('shopping_lists.created_at')
             ->get();
 

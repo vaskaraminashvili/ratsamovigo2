@@ -13,10 +13,11 @@
         'priority' => $item->priority->value,
         'group' => $item->group_name,
         'saved' => in_array(\App\Models\SavedItem::keyFor($item->name), $savedKeys, true),
+        'meta' => implode(' · ', array_filter([
+            $item->added_by === $me ? 'შენ დაამატე' : 'დაამატა '.($item->adder?->name ?? '—'),
+            $done ? ($item->bought_by === $me ? 'შენ იყიდე' : 'იყიდა '.($item->buyer?->name ?? '—')) : null,
+        ])),
     ];
-    $meta = $done
-        ? ($item->bought_by === $me ? 'შენ იყიდე' : 'იყიდა '.($item->buyer?->name ?? '—'))
-        : ($item->added_by === $me ? 'შენ დაამატე' : 'დაამატა '.($item->adder?->name ?? '—'));
 
     $check = '<svg class="size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>';
     $circle = fn (bool $isDone) => '<span class="grid size-6 place-items-center rounded-full border-2 transition '
@@ -25,12 +26,12 @@
 @endphp
 
 <li wire:key="item-{{ $item->id }}-{{ $done ? 1 : 0 }}-{{ $item->claimed_by ?? 0 }}" x-data="{ flip: false, claim: false }"
-    @class([
+    {{ $attributes->class([
         'relative flex items-center gap-1 overflow-hidden rounded-2xl border pr-2 transition-colors',
         'border-dashed border-ink-600 bg-transparent' => $done,
         'border-primary-line/50 bg-ink-900' => ! $done && $claimedByMe,
         'border-ink-700 bg-ink-900' => ! $done && ! $claimedByMe,
-    ])>
+    ]) }}>
     @if ($isUrgent && ! $done)
         <span class="absolute inset-y-3 left-0 w-1 rounded-r-full bg-urgent-400" aria-hidden="true"></span>
     @endif
@@ -62,7 +63,20 @@
                     ])>{{ $item->quantityLabel() }}</span>
                 @endif
             </span>
-            <span class="block truncate text-[14px] text-ink-400">{{ $meta }}</span>
+            @if ($item->catalog_store_name)
+                <span class="mt-1.5 flex min-w-0 items-center gap-2">
+                    @if ($item->catalog_price !== null)
+                        <span @class([
+                            'shrink-0 rounded-lg px-2 py-0.5 text-[15px] font-extrabold tabular-nums',
+                            'bg-ink-850 text-ink-400' => $done,
+                            'bg-primary-400/15 text-primary-300' => ! $done,
+                        ])>{{ number_format((float) $item->catalog_price, 2, '.', '') }} ₾</span>
+                    @endif
+                    <span @class(['min-w-0 truncate text-[13px]', 'text-ink-500' => $done, 'text-ink-300' => ! $done])>
+                        იყიდე <span @class(['font-semibold', 'text-ink-100' => ! $done])>{{ $item->catalog_store_name }}</span>@if ($item->catalog_unit) · {{ $item->catalog_unit }}@endif
+                    </span>
+                </span>
+            @endif
         </span>
     </button>
 

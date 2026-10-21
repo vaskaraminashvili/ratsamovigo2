@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Priority;
 use App\Enums\Unit;
+use App\Support\CatalogLine;
 use Database\Factories\ListItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,10 +22,20 @@ use Illuminate\Support\Carbon;
  * @property float|null $quantity
  * @property Unit $unit
  * @property Priority $priority
+ * @property int|null $position
  * @property int|null $bought_by
  * @property Carbon|null $bought_at
+ * @property int|null $catalog_product_id
+ * @property string|null $catalog_store_name
+ * @property string|null $catalog_store_slug
+ * @property string|null $catalog_price
+ * @property string|null $catalog_unit
+ * @property string|null $catalog_url
  */
-#[Fillable(['shopping_list_id', 'added_by', 'claimed_by', 'name', 'group_name', 'quantity', 'unit', 'priority', 'bought_by', 'bought_at'])]
+#[Fillable([
+    'shopping_list_id', 'added_by', 'claimed_by', 'name', 'group_name', 'quantity', 'unit', 'priority', 'position', 'bought_by', 'bought_at',
+    'catalog_product_id', 'catalog_store_name', 'catalog_store_slug', 'catalog_price', 'catalog_unit', 'catalog_url',
+])]
 class ListItem extends Model
 {
     /** @use HasFactory<ListItemFactory> */
@@ -40,7 +51,20 @@ class ListItem extends Model
             'unit' => Unit::class,
             'priority' => Priority::class,
             'bought_at' => 'datetime',
+            'catalog_price' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Catalog caption such as "1.39 ₾ · კარფური · 500 მლ", or null for items typed by hand.
+     */
+    public function catalogCaption(): ?string
+    {
+        return CatalogLine::format(
+            $this->catalog_price !== null ? (string) $this->catalog_price : null,
+            $this->catalog_store_name,
+            $this->catalog_unit,
+        );
     }
 
     public function isBought(): bool
