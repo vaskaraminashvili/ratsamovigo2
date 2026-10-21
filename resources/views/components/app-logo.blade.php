@@ -1,0 +1,17 @@
+@props(['href' => '/'])
+
+<a href="{{ $href }}" wire:navigate {{ $attributes->class('inline-flex items-center gap-2 text-[20px] font-extrabold leading-none text-ink-100') }} aria-label="რა წამოვიღო?">
+    <svg viewBox="3.2 2.4 57.6 58.6" class="h-[1.6em] w-auto shrink-0" aria-hidden="true">
+        <g transform="rotate(-24 27 20)"><rect x="22.6" y="3.5" width="9" height="30" rx="4.5" fill="#F6C744"/></g>
+        <path d="M40.5 30 C35 22 35.5 13 41 7.5 C43.5 14 43.6 22 40.5 30 Z" fill="#8FCB9B"/>
+        <path d="M41 30 C41.5 21 45.5 14.5 51.5 12 C51.4 19.5 47.5 26 41 30 Z" fill="#8FCB9B" opacity=".85"/>
+        <circle cx="51.6" cy="18.4" r="6.2" fill="#F0648C"/>
+        <path d="M49.8 12.4 q1.8 1.6 3.6 0" stroke="#8FCB9B" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.5 H10.5 L15.5 21.8"/><path d="M15.5 21.8 H59 L54.6 42 H20.4 Z"/><path d="M20.4 42 L15.8 48.8 H55.4"/>
+            <circle cx="22.4" cy="55.6" r="3.6"/><circle cx="48.6" cy="55.6" r="3.6"/>
+        </g>
+        <g fill="none" stroke="currentColor" stroke-width="3.10" stroke-linecap="round"><path d="M18.2 32.2 H57"/><path d="M30.4 21.8 L32 42 M44.6 21.8 L43.2 42"/></g>
+    </svg>
+    <span>რა წამოვიღო<span class="text-primary-fg">?</span></span>
+</a>
