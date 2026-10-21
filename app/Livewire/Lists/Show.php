@@ -78,30 +78,33 @@ class Show extends Component
             ->update(['read_at' => now()]);
     }
 
-    public function addItem(string $name, ?float $quantity, string $unit, bool $urgent): void
+    public function addItem(string $name, ?float $quantity, string $unit, bool $urgent, ?string $priority = null): void
     {
         Gate::authorize('view', $this->shoppingList);
 
         $this->throttle('add-item', 60);
 
         $validated = validator(
-            ['name' => trim($name), 'quantity' => $quantity, 'unit' => $unit],
+            ['name' => trim($name), 'quantity' => $quantity, 'unit' => $unit, 'priority' => $priority],
             [
                 'name' => ['required', 'string', 'max:120'],
                 'quantity' => ['nullable', 'numeric', 'gt:0', 'max:99999'],
                 'unit' => [Rule::enum(Unit::class)],
+                'priority' => ['nullable', Rule::enum(Priority::class)],
             ],
         )->validate();
+
+        $level = $validated['priority'] !== null ? Priority::from($validated['priority']) : ($urgent ? Priority::Urgent : Priority::Normal);
 
         $this->shoppingList->items()->create([
             'added_by' => auth()->id(),
             'name' => $validated['name'],
             'quantity' => $validated['quantity'],
             'unit' => $validated['unit'],
-            'priority' => $urgent ? Priority::Urgent : Priority::Normal,
+            'priority' => $level,
         ]);
 
-        if ($urgent) {
+        if ($level === Priority::Urgent) {
             $this->shoppingList->notifyMembers(auth()->user(), 'დაამატა სასწრაფო: '.$validated['name']);
         }
     }

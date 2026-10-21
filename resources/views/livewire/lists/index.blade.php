@@ -1,4 +1,4 @@
-<div wire:poll.visible.10s x-data="{ sheet: false }"
+<div wire:poll.visible.10s x-data="{ sheet: false, pickFor: null }"
      x-on:list-created.window="sheet = false">
     <main class="px-5">
         <section class="pt-4">
@@ -27,14 +27,25 @@
                     <svg class="size-4 shrink-0 text-primary-fg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"/></svg>
                     შენახული
                 </h2>
-                <div class="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+                <div class="mt-3 flex flex-wrap gap-2">
                     @foreach ($pinned as $item)
-                        <button type="button" wire:key="pinned-{{ $item->id }}" wire:click="readd({{ $item->id }})"
+                        <button type="button" wire:key="pinned-{{ $item->id }}" @if ($item->shopping_list_id !== null || $lists->count() === 1) wire:click="readd({{ $item->id }})" @else @click="pickFor = pickFor === {{ $item->id }} ? null : {{ $item->id }}" @endif
                                 class="flex shrink-0 items-center gap-2 rounded-full border border-ink-700 bg-ink-900 px-3.5 py-2 text-[15px] transition hover:border-ink-500">
                             <svg class="size-4 shrink-0 text-primary-fg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             <span class="font-medium">{{ $item->name }}</span>
                         </button>
                     @endforeach
+                </div>
+
+                <div x-show="pickFor !== null" x-cloak class="mt-3 rounded-2xl border border-ink-700 bg-ink-900 p-3">
+                    <p class="text-[14px] text-ink-300">რომელ სიაში დავამატო?</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        @foreach ($lists as $targetList)
+                            <button type="button" wire:key="pick-{{ $targetList->id }}" @click="$wire.readd(pickFor, {{ $targetList->id }}); pickFor = null"
+                                    class="min-h-11 rounded-full border border-ink-700 px-4 text-[15px] font-medium hover:border-primary-line">{{ $targetList->name }}</button>
+                        @endforeach
+                        <button type="button" @click="pickFor = null" class="min-h-11 rounded-full px-4 text-[14px] text-ink-400">გაუქმება</button>
+                    </div>
                 </div>
             </section>
         @endif

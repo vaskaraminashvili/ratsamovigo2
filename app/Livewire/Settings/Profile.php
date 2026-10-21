@@ -41,6 +41,8 @@ class Profile extends Component
 
     public string $savedUnit = 'ცალი';
 
+    public ?int $editingSavedId = null;
+
     public function mount(): void
     {
         $user = auth()->user();
@@ -124,16 +126,28 @@ class Profile extends Component
             'savedName.required' => 'დაწერე ნივთის სახელი.',
         ]);
 
-        auth()->user()->savedItems()->updateOrCreate(
-            ['name_key' => SavedItem::keyFor($validated['savedName'])],
-            [
-                'name' => trim($validated['savedName']),
-                'quantity' => $validated['savedQuantity'],
-                'unit' => $validated['savedQuantity'] === null ? null : $validated['savedUnit'],
-            ],
-        );
+        $attributes = [
+            'name' => trim($validated['savedName']),
+            'quantity' => $validated['savedQuantity'],
+            'unit' => $validated['savedQuantity'] === null ? null : $validated['savedUnit'],
+        ];
+        $key = SavedItem::keyFor($validated['savedName']);
 
-        $this->reset('savedName', 'savedQuantity');
+        if ($this->editingSavedId !== null) {
+            $saved = auth()->user()->savedItems()->findOrFail($this->editingSavedId);
+
+            if (auth()->user()->savedItems()->where('name_key', $key)->whereKeyNot($saved->id)->exists()) {
+                $this->addError('savedName', 'ასეთი ნივთი უკვე გაქვს შენახული.');
+
+                return;
+            }
+
+            $saved->update($attributes);
+        } else {
+            auth()->user()->savedItems()->updateOrCreate(['name_key' => $key], $attributes);
+        }
+
+        $this->reset('savedName', 'savedQuantity', 'editingSavedId');
         $this->savedUnit = Unit::Piece->value;
         $this->dispatch('saved-added');
     }
@@ -168,8 +182,33 @@ class Profile extends Component
         auth()->user()->dishes()->whereKey($dishId)->delete();
     }
 
+    public function editSaved(int $savedItemId): void
+    {
+        $saved = auth()->user()->savedItems()->findOrFail($savedItemId);
+
+        $this->resetErrorBag();
+        $this->editingSavedId = $saved->id;
+        $this->savedName = $saved->name;
+        $this->savedQuantity = $saved->quantity;
+        $this->savedUnit = $saved->unit ?? Unit::Piece->value;
+
+        $this->dispatch('saved-loaded', qty: $saved->quantity, unit: $this->savedUnit);
+    }
+
+    public function cancelEditSaved(): void
+    {
+        $this->reset('savedName', 'savedQuantity', 'editingSavedId');
+        $this->savedUnit = Unit::Piece->value;
+        $this->resetErrorBag();
+        $this->dispatch('saved-added');
+    }
+
     public function deleteSaved(int $savedItemId): void
     {
+        if ($this->editingSavedId === $savedItemId) {
+            $this->cancelEditSaved();
+        }
+
         auth()->user()->savedItems()->whereKey($savedItemId)->delete();
     }
 

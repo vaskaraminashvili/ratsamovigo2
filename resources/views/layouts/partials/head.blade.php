@@ -33,6 +33,7 @@
   window.rwTheme = {
     get: function () { return choice; },
     resolved: resolve,
+    apply: apply,
     set: function (v) { choice = v; try { localStorage.setItem(KEY, v); } catch (e) {} apply(); }
   };
 })();

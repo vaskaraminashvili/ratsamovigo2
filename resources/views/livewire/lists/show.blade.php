@@ -267,20 +267,28 @@
 
         <div x-show="draft.name.trim()" x-cloak x-transition.opacity class="mb-2 rounded-3xl border border-ink-700 bg-ink-850 p-3 shadow-[0_20px_40px_-15px_var(--shade)]">
             <x-qty-picker target="draft" />
+
+            <div class="mt-3 grid grid-cols-3 gap-2" role="group" aria-label="პრიორიტეტი">
+                @foreach ($priorities as $priority)
+                    <button type="button" @click="draft.priority = '{{ $priority->value }}'" :aria-pressed="(draft.priority === '{{ $priority->value }}').toString()"
+                            class="min-h-11 rounded-2xl border px-2 text-[14px] font-semibold transition"
+                            :class="draft.priority === '{{ $priority->value }}' ? 'border-primary-line bg-primary-400/10' : 'border-ink-700 text-ink-300'">{{ $priority->label() }}</button>
+                @endforeach
+            </div>
         </div>
 
         <form @submit.prevent="add()" class="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 p-1.5 shadow-[0_20px_40px_-15px_var(--shade)] focus-within:border-primary-line">
             <label for="draft" class="sr-only">ნივთის დამატება</label>
             <input id="draft" x-model="draft.name" enterkeyhint="done" autocomplete="off" maxlength="120"
                    class="h-10 min-w-0 flex-1 bg-transparent pl-4 text-[16px] outline-none placeholder:text-ink-500"
-                   :placeholder="draft.urgent ? 'სასწრაფო ნივთი' : 'დაამატე ნივთი'">
+                   :placeholder="draft.priority === 'urgent' ? 'სასწრაფო ნივთი' : 'დაამატე ნივთი'">
             <button type="button" @click.stop="addMenu = !addMenu" class="grid size-11 shrink-0 place-items-center rounded-full text-ink-400 hover:bg-ink-800"
                     :aria-expanded="addMenu.toString()" aria-label="დამატების მენიუ">
                 {!! $icon('M9 4.5v15m6-15v15M4.5 9h15M4.5 15h15') !!}
             </button>
-            <button type="button" @click="draft.urgent = !draft.urgent" class="grid size-11 shrink-0 place-items-center rounded-full transition"
-                    :class="draft.urgent ? 'bg-urgent-400 text-on' : 'text-ink-400 hover:bg-ink-800'"
-                    :aria-pressed="draft.urgent.toString()" aria-label="ახალი ნივთი სასწრაფოა">
+            <button type="button" @click="draft.priority = draft.priority === 'urgent' ? 'normal' : 'urgent'" class="grid size-11 shrink-0 place-items-center rounded-full transition"
+                    :class="draft.priority === 'urgent' ? 'bg-urgent-400 text-on' : 'text-ink-400 hover:bg-ink-800'"
+                    :aria-pressed="(draft.priority === 'urgent').toString()" aria-label="ახალი ნივთი სასწრაფოა">
                 {!! $icon('m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z') !!}
             </button>
             <button class="grid size-11 shrink-0 place-items-center rounded-full bg-primary-400 text-on disabled:opacity-40" :disabled="!draft.name.trim()" aria-label="დამატება">

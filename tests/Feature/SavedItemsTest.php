@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Unit;
+use App\Livewire\Lists\Index;
 use App\Livewire\Lists\Show;
 use App\Livewire\Settings\Profile;
 use App\Models\ListItem;
@@ -136,4 +137,85 @@ test('a user cannot delete another users saved item', function () {
     Livewire::test(Profile::class)->call('deleteSaved', $foreign->id);
 
     expect(SavedItem::find($foreign->id))->not->toBeNull();
+});
+
+test('a saved item can be loaded and edited on the profile', function () {
+    $saved = $this->user->savedItems()->create(['name' => 'Milk', 'quantity' => 1, 'unit' => 'ლ']);
+    $this->actingAs($this->user);
+
+    Livewire::test(Profile::class)
+        ->call('editSaved', $saved->id)
+        ->assertSet('editingSavedId', $saved->id)
+        ->assertSet('savedName', 'Milk')
+        ->assertSet('savedQuantity', 1.0)
+        ->assertSet('savedUnit', 'ლ')
+        ->set('savedName', 'Oat milk')
+        ->set('savedQuantity', 2)
+        ->call('addSaved')
+        ->assertHasNoErrors()
+        ->assertSet('editingSavedId', null)
+        ->assertSet('savedName', '');
+
+    $saved->refresh();
+    expect($saved->name)->toBe('Oat milk')
+        ->and($saved->name_key)->toBe('oat milk')
+        ->and($saved->quantity)->toBe(2.0)
+        ->and($this->user->savedItems()->count())->toBe(1);
+});
+
+test('editing cannot rename an item to one that already exists', function () {
+    $this->user->savedItems()->create(['name' => 'Bread']);
+    $milk = $this->user->savedItems()->create(['name' => 'Milk']);
+    $this->actingAs($this->user);
+
+    Livewire::test(Profile::class)
+        ->call('editSaved', $milk->id)
+        ->set('savedName', ' bread ')
+        ->call('addSaved')
+        ->assertHasErrors('savedName');
+
+    expect($milk->fresh()->name)->toBe('Milk');
+});
+
+test('editing can be cancelled and another users item cannot be edited', function () {
+    $saved = $this->user->savedItems()->create(['name' => 'Milk']);
+    $foreign = SavedItem::factory()->create();
+    $this->actingAs($this->user);
+
+    Livewire::test(Profile::class)->call('editSaved', $saved->id)->call('cancelEditSaved')->assertSet('editingSavedId', null)->assertSet('savedName', '');
+    Livewire::test(Profile::class)->call('editSaved', $foreign->id)->assertNotFound();
+});
+
+test('the home page shows every saved item, not only list bound ones', function () {
+    $this->user->savedItems()->create(['name' => 'Honey']);
+    $this->user->savedItems()->create(['name' => 'Bread', 'shopping_list_id' => $this->list->id]);
+    $this->actingAs($this->user);
+
+    Livewire::test(Index::class)->assertSee('Honey')->assertSee('Bread');
+});
+
+test('a saved item without a list goes to the only list, or to the chosen one', function () {
+    $saved = $this->user->savedItems()->create(['name' => 'Honey']);
+    $this->actingAs($this->user);
+
+    Livewire::test(Index::class)->call('readd', $saved->id);
+    expect($this->list->items()->pluck('name')->all())->toBe(['Honey']);
+
+    $other = ShoppingList::factory()->create(['owner_id' => $this->user->id]);
+
+    Livewire::test(Index::class)->call('readd', $saved->id);
+    expect($other->items()->count())->toBe(0);
+
+    Livewire::test(Index::class)->call('readd', $saved->id, $other->id);
+    expect($other->items()->pluck('name')->all())->toBe(['Honey']);
+});
+
+test('items cannot be added to a list the user is not in', function () {
+    $saved = $this->user->savedItems()->create(['name' => 'Honey']);
+    $foreign = ShoppingList::factory()->create();
+    $this->actingAs($this->user);
+
+    Livewire::test(Index::class)->call('readd', $saved->id, $foreign->id);
+
+    expect($foreign->items()->count())->toBe(0);
 });

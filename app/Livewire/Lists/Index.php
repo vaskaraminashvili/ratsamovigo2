@@ -49,13 +49,24 @@ class Index extends Component
         auth()->user()->unreadNotifications()->update(['read_at' => now()]);
     }
 
-    public function readd(int $savedItemId): void
+    /**
+     * Add a saved item to a list: the one chosen in the picker, otherwise the list it
+     * was saved from, otherwise the user's only list.
+     */
+    public function readd(int $savedItemId, ?int $listId = null): void
     {
-        $saved = auth()->user()->savedItems()->with('shoppingList')->findOrFail($savedItemId);
+        $user = auth()->user();
+        $saved = $user->savedItems()->findOrFail($savedItemId);
 
-        $list = $saved->shoppingList;
+        $list = $listId !== null
+            ? $user->shoppingLists()->whereKey($listId)->first()
+            : ($saved->shopping_list_id !== null ? $user->shoppingLists()->whereKey($saved->shopping_list_id)->first() : null);
 
-        if (! $list || ! $list->members()->whereKey(auth()->id())->exists()) {
+        if ($list === null && $listId === null && $saved->shopping_list_id === null && $user->shoppingLists()->count() === 1) {
+            $list = $user->shoppingLists()->first();
+        }
+
+        if ($list === null) {
             return;
         }
 
@@ -89,7 +100,7 @@ class Index extends Component
             'notifications' => $user->unreadNotifications()->latest()->limit(5)->get(),
             'lists' => $lists,
             'urgentTotal' => (int) $lists->sum('urgent_count'),
-            'pinned' => SavedItem::query()->with('shoppingList')->where('user_id', $user->id)->whereNotNull('shopping_list_id')->latest()->limit(12)->get(),
+            'pinned' => SavedItem::query()->where('user_id', $user->id)->orderBy('name')->limit(60)->get(),
             'greeting' => match (true) {
                 now()->hour < 12 => 'დილა მშვიდობისა',
                 now()->hour < 18 => 'დღე მშვიდობისა',

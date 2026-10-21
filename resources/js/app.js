@@ -66,11 +66,11 @@ window.listPage = function ({ units }) {
                 return;
             }
 
-            const { qty, unit, urgent } = this.draft;
+            const { qty, unit, priority } = this.draft;
             this.draft = blank();
             this.addMenu = false;
 
-            await this.$wire.addItem(name, qty, unit, urgent);
+            await this.$wire.addItem(name, qty, unit, priority === 'urgent', priority);
         },
 
         matchesDraft(key) {
@@ -267,3 +267,9 @@ if ('serviceWorker' in navigator) {
         }
     });
 }
+
+/**
+ * wire:navigate swaps the <html> element's attributes, which drops the palette.
+ * Re-apply the saved theme after every navigation.
+ */
+document.addEventListener('livewire:navigated', () => window.rwTheme?.apply());

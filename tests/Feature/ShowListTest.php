@@ -198,3 +198,36 @@ test('the list polls and shows items added by another member', function () {
 
     $component->call('$refresh')->assertSee('Bread');
 });
+
+test('an item can be added with the maybe priority', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(Show::class, ['shoppingList' => $this->list])
+        ->call('addItem', 'Tea', null, 'ცალი', false, 'maybe')
+        ->assertHasNoErrors();
+
+    expect($this->list->items()->first()->priority)->toBe(Priority::Maybe);
+});
+
+test('an unknown priority is rejected when adding', function () {
+    $this->actingAs($this->user);
+
+    Livewire::test(Show::class, ['shoppingList' => $this->list])
+        ->call('addItem', 'Tea', null, 'ცალი', false, 'bogus')
+        ->assertHasErrors('priority');
+});
+
+test('the saved theme is rendered on the html element of every layout', function () {
+    $this->user->update(['theme' => 'tarkhuna']);
+    $this->actingAs($this->user);
+
+    $this->get(route('lists.show', $this->list))->assertSee('data-palette="tarkhuna"', false);
+    $this->get(route('lists.index'))->assertSee('data-palette="tarkhuna"', false);
+    $this->get(route('settings.profile'))->assertSee('data-palette="tarkhuna"', false);
+});
+
+test('the system theme leaves the palette to the browser', function () {
+    $this->actingAs($this->user);
+
+    $this->get(route('lists.show', $this->list))->assertDontSee('data-palette="', false);
+});
