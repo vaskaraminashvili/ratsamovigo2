@@ -14,6 +14,7 @@ use App\Models\ShoppingList;
 use App\Models\User;
 use App\Notifications\GoingToStoreNotification;
 use App\Support\CoverImage;
+use App\Support\ProductSearch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
@@ -21,6 +22,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -78,23 +80,54 @@ class Show extends Component
             ->update(['read_at' => now()]);
     }
 
-    public function addItem(string $name, ?float $quantity, string $unit, bool $urgent, ?string $priority = null): void
+    /**
+     * Product and price suggestions for the item being typed. Empty unless the list has
+     * "fetch best price" turned on.
+     *
+     * @return list<array{name: string, unit: ?string, price: ?string, store_name: string, store_slug: ?string, product_id: int, url: ?string, caption: ?string}>
+     */
+    #[Renderless]
+    public function searchProducts(string $query, ProductSearch $search): array
+    {
+        Gate::authorize('view', $this->shoppingList);
+
+        if (! $this->shoppingList->fresh()->fetch_best_price) {
+            return [];
+        }
+
+        $this->throttle('search-products', 60);
+
+        return $search->suggestions($query);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $catalog  Product picked from the price suggestions.
+     */
+    public function addItem(string $name, ?float $quantity, string $unit, bool $urgent, ?string $priority = null, ?array $catalog = null): void
     {
         Gate::authorize('view', $this->shoppingList);
 
         $this->throttle('add-item', 60);
 
         $validated = validator(
-            ['name' => trim($name), 'quantity' => $quantity, 'unit' => $unit, 'priority' => $priority],
+            ['name' => trim($name), 'quantity' => $quantity, 'unit' => $unit, 'priority' => $priority, 'catalog' => $catalog],
             [
                 'name' => ['required', 'string', 'max:120'],
                 'quantity' => ['nullable', 'numeric', 'gt:0', 'max:99999'],
                 'unit' => [Rule::enum(Unit::class)],
                 'priority' => ['nullable', Rule::enum(Priority::class)],
+                'catalog' => ['nullable', 'array'],
+                'catalog.product_id' => ['nullable', 'integer', 'min:0'],
+                'catalog.store_name' => ['required_with:catalog', 'string', 'max:80'],
+                'catalog.store_slug' => ['nullable', 'string', 'max:40'],
+                'catalog.price' => ['nullable', 'numeric', 'min:0', 'max:999999'],
+                'catalog.unit' => ['nullable', 'string', 'max:40'],
+                'catalog.url' => ['nullable', 'url:https', 'max:255'],
             ],
         )->validate();
 
         $level = $validated['priority'] !== null ? Priority::from($validated['priority']) : ($urgent ? Priority::Urgent : Priority::Normal);
+        $picked = $validated['catalog'] ?? null;
 
         $this->shoppingList->items()->create([
             'added_by' => auth()->id(),
@@ -102,6 +135,14 @@ class Show extends Component
             'quantity' => $validated['quantity'],
             'unit' => $validated['unit'],
             'priority' => $level,
+            ...($picked === null ? [] : [
+                'catalog_product_id' => ($picked['product_id'] ?? 0) > 0 ? $picked['product_id'] : null,
+                'catalog_store_name' => $picked['store_name'],
+                'catalog_store_slug' => $picked['store_slug'] ?? null,
+                'catalog_price' => $picked['price'] ?? null,
+                'catalog_unit' => $picked['unit'] ?? null,
+                'catalog_url' => $picked['url'] ?? null,
+            ]),
         ]);
 
         if ($level === Priority::Urgent) {
@@ -469,7 +510,7 @@ class Show extends Component
         $this->dispatch('toast', message: 'ნივთები სიაში დაბრუნდა');
     }
 
-    public function saveSettings(string $name, bool $groupByPriority, string $boughtBehavior): void
+    public function saveSettings(string $name, bool $groupByPriority, string $boughtBehavior, ?bool $fetchBestPrice = null): void
     {
         Gate::authorize('update', $this->shoppingList);
 
@@ -485,6 +526,7 @@ class Show extends Component
             'name' => $validated['name'],
             'bought_behavior' => $validated['boughtBehavior'],
             'group_by_priority' => $groupByPriority,
+            'fetch_best_price' => $fetchBestPrice ?? $this->shoppingList->fetch_best_price,
         ]);
 
         $this->dispatch('toast', message: 'პარამეტრები შენახულია');

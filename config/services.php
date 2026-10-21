@@ -28,6 +28,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'tarifebi' => [
+        'url' => env('TARIFEBI_PRODUCTS_URL', 'https://tarifebi.ge/api/products.php'),
+        'timeout' => (int) env('TARIFEBI_TIMEOUT', 3),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

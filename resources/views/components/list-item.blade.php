@@ -63,6 +63,9 @@
                 @endif
             </span>
             <span class="block truncate text-[14px] text-ink-400">{{ $meta }}</span>
+            @if ($item->catalogCaption())
+                <span class="block truncate text-[13px] text-primary-300">{{ $item->catalogCaption() }}</span>
+            @endif
         </span>
     </button>
 
