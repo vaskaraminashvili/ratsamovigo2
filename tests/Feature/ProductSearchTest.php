@@ -63,17 +63,14 @@ it('searches in georgian, keeps five rows and caches the result', function () {
             'products' => [
                 productRow(),
                 productRow(['id' => 2, 'sale_price' => null, 'original_price' => '1.50', 'store_name' => 'მაგნიტი', 'unit' => null]),
-                productRow(['id' => 3]),
-                productRow(['id' => 4]),
-                productRow(['id' => 5]),
-                productRow(['id' => 6]),
+                ...array_map(fn (int $id) => productRow(['id' => $id]), range(3, ProductSearch::LIMIT + 3)),
             ],
         ]),
     ]);
 
     $rows = app(ProductSearch::class)->suggestions('nabeghlavi');
 
-    expect($rows)->toHaveCount(5)
+    expect($rows)->toHaveCount(ProductSearch::LIMIT)
         ->and($rows[0]['price'])->toBe('1.39')
         ->and($rows[0]['caption'])->toBe('1.39 ₾ · კარფური · 500 მლ')
         ->and($rows[1]['price'])->toBe('1.50')
@@ -84,7 +81,7 @@ it('searches in georgian, keeps five rows and caches the result', function () {
         parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
 
         return $query['q'] === 'ნაბეღლავი'
-            && $query['limit'] === '5'
+            && $query['limit'] === (string) ProductSearch::LIMIT
             && $query['store_type'] === 'grocery'
             && $query['group'] === '1'
             && $query['sort'] === 'sale';

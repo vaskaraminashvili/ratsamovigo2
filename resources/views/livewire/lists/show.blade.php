@@ -33,6 +33,33 @@
     </header>
 
     <main class="px-5">
+        <div class="mt-1 grid grid-cols-2 rounded-2xl border border-ink-700 bg-ink-900 p-1 text-[14px] font-semibold" role="tablist">
+            @foreach (['list' => 'სია', 'activity' => 'აქტივობა'] as $tab => $tabLabel)
+                <button type="button" role="tab" @click="view = '{{ $tab }}'" :aria-selected="(view === '{{ $tab }}').toString()"
+                        class="min-h-10 rounded-xl transition"
+                        :class="view === '{{ $tab }}' ? 'bg-ink-700 text-ink-100' : 'text-ink-400'">{{ $tabLabel }}</button>
+            @endforeach
+        </div>
+
+        <section x-show="view === 'activity'" x-cloak aria-label="აქტივობა" class="mt-4">
+            @if ($activity->isEmpty())
+                <p class="py-10 text-center text-[15px] text-ink-400">ჯერ არაფერი მომხდარა.</p>
+            @else
+                <ul class="divide-y divide-ink-800 rounded-2xl border border-ink-700 bg-ink-900 px-4">
+                    @foreach ($activity as $event)
+                        <li class="flex items-start gap-3 py-3">
+                            <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold text-on {{ $event['user']->avatarColorClass() }}">{{ $event['user']->initials() }}</span>
+                            <div class="min-w-0">
+                                <p class="text-[15px] leading-snug"><span class="font-semibold">{{ $event['user']->id === auth()->id() ? 'შენ' : $event['user']->name }}</span> {{ $event['text'] }}</p>
+                                <p class="mt-0.5 text-[13px] text-ink-400">{{ $event['at']->locale('ka')->diffForHumans() }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+
+        <div x-show="view === 'list'">
         @if ($shoppingList->coverUrl())
             <img src="{{ $shoppingList->coverUrl() }}" alt="" class="mt-1 aspect-[16/7] w-full rounded-3xl object-cover" loading="lazy">
         @endif
@@ -227,10 +254,11 @@
                 </section>
             @endif
         @endif
+        </div>
     </main>
 
     {{-- Quick add --}}
-    <div class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
+    <div x-show="view === 'list'" class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
         @if ($savedItems->isNotEmpty() || $boughtItems->isNotEmpty())
             <div class="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
                 @foreach ($boughtItems->unique(fn ($bought) => \App\Models\SavedItem::keyFor($bought->name))->take(15) as $bought)
@@ -312,6 +340,7 @@
             <div>
                 <label for="edit-name" class="field-label">ნივთის სახელი</label>
                 <input id="edit-name" class="field" x-model="edit.name" maxlength="120" autocomplete="off">
+                <p x-show="edit.meta" x-text="edit.meta" class="mt-1.5 text-[13px] text-ink-400"></p>
             </div>
 
             <x-qty-picker target="edit" />

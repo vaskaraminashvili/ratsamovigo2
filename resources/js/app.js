@@ -3,7 +3,7 @@
  * client so the quantity stepper is instant; Livewire is only called on submit.
  */
 window.listPage = function ({ units }) {
-    const blank = () => ({ id: null, name: '', qty: null, unit: 'ცალი', urgent: false, priority: 'normal', saved: false, group: null, catalog: null });
+    const blank = () => ({ id: null, name: '', qty: null, unit: 'ცალი', urgent: false, priority: 'normal', saved: false, group: null, catalog: null, meta: '' });
 
     return {
         units,
@@ -11,6 +11,7 @@ window.listPage = function ({ units }) {
         searchSeq: 0,
         searchTimer: null,
         sheet: null,
+        view: 'list',
         addMenu: false,
         showHidden: false,
         pick: [],
@@ -192,6 +193,7 @@ window.listPage = function ({ units }) {
                 priority: item.priority,
                 saved: item.saved,
                 group: item.group,
+                meta: item.meta ?? '',
             };
             this.sheet = 'item';
         },

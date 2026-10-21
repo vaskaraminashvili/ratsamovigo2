@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
  */
 class ProductSearch
 {
-    public const LIMIT = 5;
+    public const LIMIT = 10;
 
     public const MIN_LENGTH = 3;
 

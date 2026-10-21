@@ -14,6 +14,7 @@ use App\Models\ShoppingList;
 use App\Models\User;
 use App\Notifications\GoingToStoreNotification;
 use App\Support\CoverImage;
+use App\Support\ListActivity;
 use App\Support\ProductSearch;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -632,11 +633,13 @@ class Show extends Component
         $bought = $plain->filter->isBought()->values();
 
         $savedItems = auth()->user()->savedItems()->orderBy('name')->get();
+        $polls = $this->shoppingList->polls()->with(['creator', 'options.votes.user'])->latest()->get();
 
         return view('livewire.lists.show', [
             'shopper' => $this->shoppingList->shopping_by === null ? null : $this->shoppingList->shopper,
             'goingMessage' => auth()->user()->going_message,
-            'polls' => $this->shoppingList->polls()->with(['creator', 'options.votes.user'])->latest()->get(),
+            'polls' => $polls,
+            'activity' => ListActivity::events($items, $polls),
             'dishGroups' => $dishGroups,
             'dishLeft' => $dishGroups->flatten()->reject->isBought()->count(),
             'dishes' => auth()->user()->dishes()->with('ingredients')->orderBy('name')->get(),
