@@ -2,6 +2,7 @@
     $multiMember = $members->count() > 1;
     $grouped = $shoppingList->group_by_priority;
     $leftCount = $openItems->count() + $dishLeft;
+    $urgentCount = $openItems->where('priority', \App\Enums\Priority::Urgent)->count();
     $icon = fn (string $d) => '<svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="'.$d.'"/></svg>';
 @endphp
 
@@ -29,18 +30,14 @@
                 </button>
             @endif
         </div>
-        <p class="pl-12 text-[13px] text-ink-400">{{ $leftCount }} დარჩა</p>
+        <div class="flex items-center justify-between pl-12">
+            <p class="text-[13px] text-ink-400">{{ $leftCount }} დარჩა@if ($urgentCount > 0) · <span class="font-semibold text-urgent-fg">{{ $urgentCount }} სასწრაფო</span>@endif</p>
+            <button type="button" @click="view = view === 'activity' ? 'list' : 'activity'" class="-my-2 rounded-full px-3 py-2.5 text-[13px] font-semibold text-ink-300 hover:bg-ink-800" :aria-pressed="(view === 'activity').toString()"
+                    x-text="view === 'activity' ? 'სია' : 'აქტივობა'">აქტივობა</button>
+        </div>
     </header>
 
     <main class="px-5">
-        <div class="mt-1 grid grid-cols-2 rounded-2xl border border-ink-700 bg-ink-900 p-1 text-[14px] font-semibold" role="tablist">
-            @foreach (['list' => 'სია', 'activity' => 'აქტივობა'] as $tab => $tabLabel)
-                <button type="button" role="tab" @click="view = '{{ $tab }}'" :aria-selected="(view === '{{ $tab }}').toString()"
-                        class="min-h-10 rounded-xl transition"
-                        :class="view === '{{ $tab }}' ? 'bg-ink-700 text-ink-100' : 'text-ink-400'">{{ $tabLabel }}</button>
-            @endforeach
-        </div>
-
         <section x-show="view === 'activity'" x-cloak aria-label="აქტივობა" class="mt-4">
             @if ($activity->isEmpty())
                 <p class="py-10 text-center text-[15px] text-ink-400">ჯერ არაფერი მომხდარა.</p>
@@ -77,12 +74,9 @@
                     @endif
                 </div>
             @else
-                <button type="button" @click="openGoing(@js($goingMessage), @js($members->pluck('id')->reject(fn ($id) => $id === auth()->id())->values()))" class="mt-4 flex w-full items-center gap-3 rounded-2xl border border-ink-700 bg-ink-900 p-3.5 text-left hover:border-ink-500">
-                    <span class="grid size-9 shrink-0 place-items-center rounded-full bg-primary-400/15 text-primary-fg">{!! $icon('M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z') !!}</span>
-                    <span class="min-w-0 flex-1">
-                        <span class="block font-semibold">მაღაზიაში მიდიხარ?</span>
-                        <span class="block text-[13px] text-ink-400">შეატყობინე სხვებს, სანამ გახვალ.</span>
-                    </span>
+                <button type="button" @click="openGoing(@js($goingMessage), @js($members->pluck('id')->reject(fn ($id) => $id === auth()->id())->values()))" class="mt-3 flex min-h-12 w-full items-center gap-3 rounded-2xl border border-ink-700 bg-ink-900 px-3.5 py-2 text-left hover:border-ink-500">
+                    <span class="text-primary-fg">{!! $icon('M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z') !!}</span>
+                    <span class="min-w-0 flex-1 truncate font-semibold">მაღაზიაში მიდიხარ?</span>
                 </button>
             @endif
         @endif
@@ -95,10 +89,10 @@
                 $myVote = $poll->options->first(fn ($option) => $option->votes->contains('user_id', auth()->id()));
                 $leaders = $poll->options->filter(fn ($option) => $maxVotes > 0 && $option->votes->count() === $maxVotes);
             @endphp
-            <section class="mt-6 rounded-3xl border border-ink-700 bg-ink-900" wire:key="poll-{{ $poll->id }}" aria-label="გამოკითხვა">
+            <section class="mt-3 rounded-2xl border border-ink-700 bg-ink-900" wire:key="poll-{{ $poll->id }}" aria-label="გამოკითხვა">
                 <button type="button" @click="openPoll = openPoll === {{ $poll->id }} ? null : {{ $poll->id }}" :aria-expanded="(openPoll === {{ $poll->id }}).toString()"
-                        class="flex w-full items-center gap-3 p-4 text-left">
-                    <span class="grid size-9 shrink-0 place-items-center rounded-full bg-primary-400/15 text-primary-fg">
+                        class="flex w-full items-center gap-3 px-3.5 py-3 text-left">
+                    <span class="shrink-0 text-primary-fg">
                         {!! $icon('M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z') !!}
                     </span>
                     <span class="min-w-0 flex-1">
@@ -258,7 +252,7 @@
     </main>
 
     {{-- Quick add --}}
-    <div x-show="view === 'list'" class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-gradient-to-t from-ink-950 via-ink-950/95 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
+    <div x-show="view === 'list'" class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-ink-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
         @if ($savedItems->isNotEmpty() || $boughtItems->isNotEmpty())
             <div class="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
                 @foreach ($boughtItems->unique(fn ($bought) => \App\Models\SavedItem::keyFor($bought->name))->take(15) as $bought)
@@ -314,21 +308,21 @@
             </template>
         </div>
 
-        <form @submit.prevent="add()" class="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 p-1.5 shadow-[0_20px_40px_-15px_var(--shade)] focus-within:border-primary-line">
+        <form @submit.prevent="add()" class="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 p-1.5 focus-within:border-primary-line">
             <label for="draft" class="sr-only">ნივთის დამატება</label>
             <input id="draft" x-model="draft.name" enterkeyhint="done" autocomplete="off" maxlength="120"
                    class="h-10 min-w-0 flex-1 bg-transparent pl-4 text-[16px] outline-none placeholder:text-ink-500"
                    :placeholder="draft.priority === 'urgent' ? 'სასწრაფო ნივთი' : 'დაამატე ნივთი'">
             <button type="button" @click.stop="addMenu = !addMenu" class="grid size-11 shrink-0 place-items-center rounded-full text-ink-400 hover:bg-ink-800"
-                    :aria-expanded="addMenu.toString()" aria-label="დამატების მენიუ">
-                {!! $icon('M9 4.5v15m6-15v15M4.5 9h15M4.5 15h15') !!}
+                    :aria-expanded="addMenu.toString()" aria-label="დამატების მენიუ" title="შენახულიდან, კერძი, გამოკითხვა">
+                {!! $icon('M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z') !!}
             </button>
             <button type="button" @click="draft.priority = draft.priority === 'urgent' ? 'normal' : 'urgent'" class="grid size-11 shrink-0 place-items-center rounded-full transition"
                     :class="draft.priority === 'urgent' ? 'bg-urgent-400 text-on' : 'text-ink-400 hover:bg-ink-800'"
                     :aria-pressed="(draft.priority === 'urgent').toString()" aria-label="ახალი ნივთი სასწრაფოა">
                 {!! $icon('m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z') !!}
             </button>
-            <button class="grid size-11 shrink-0 place-items-center rounded-full bg-primary-400 text-on disabled:opacity-40" :disabled="!draft.name.trim()" aria-label="დამატება">
+            <button class="grid size-11 shrink-0 place-items-center rounded-full transition" :class="draft.name.trim() ? 'bg-primary-400 text-on' : 'bg-ink-800 text-ink-500'" :disabled="!draft.name.trim()" aria-label="დამატება">
                 {!! $icon('M12 4.5v15m7.5-7.5h-15') !!}
             </button>
         </form>

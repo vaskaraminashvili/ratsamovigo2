@@ -83,7 +83,7 @@
     @if (! $done && $multiMember)
         <div class="shrink-0 pl-1" x-show="!flip">
             @if (! $item->claimed_by)
-                <button type="button" x-show="!claim" @click="claim = true; $wire.toggleClaim({{ $item->id }}).catch(() => claim = false)" class="h-11 rounded-full border border-ink-700 px-3 text-[13px] font-medium text-ink-200 hover:border-primary-line hover:text-primary-300">ვიყიდი</button>
+                <button type="button" x-show="!claim" @click="claim = true; $wire.toggleClaim({{ $item->id }}).catch(() => claim = false)" class="h-11 rounded-full px-3 text-[13px] font-medium text-ink-400 hover:text-primary-300">ვიყიდი</button>
                 <span x-show="claim" x-cloak class="flex h-11 items-center gap-1.5 rounded-full bg-primary-400/15 py-1 pl-1 pr-3 text-[13px] font-semibold text-primary-300">
                     <span class="grid size-6 place-items-center rounded-full text-[11px] font-bold text-on {{ auth()->user()->avatarColorClass() }}">{{ auth()->user()->initials() }}</span>მე
                 </span>
@@ -92,7 +92,7 @@
                         class="flex h-11 items-center gap-1.5 rounded-full bg-primary-400/15 py-1 pl-1 pr-3 text-[13px] font-semibold text-primary-300">
                     <span class="grid size-6 place-items-center rounded-full text-[11px] font-bold text-on {{ auth()->user()->avatarColorClass() }}">{{ auth()->user()->initials() }}</span>მე
                 </button>
-                <button type="button" x-show="claim" x-cloak @click="claim = false; $wire.toggleClaim({{ $item->id }}).catch(() => claim = true)" class="h-11 rounded-full border border-ink-700 px-3 text-[13px] font-medium text-ink-200">ვიყიდი</button>
+                <button type="button" x-show="claim" x-cloak @click="claim = false; $wire.toggleClaim({{ $item->id }}).catch(() => claim = true)" class="h-11 rounded-full px-3 text-[13px] font-medium text-ink-400">ვიყიდი</button>
             @else
                 <span class="flex h-8 max-w-[7.5rem] items-center gap-1.5 rounded-full bg-ink-800 py-1 pl-1 pr-3 text-[13px] font-medium text-ink-200">
                     <span class="grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold text-on {{ $item->claimer->avatarColorClass() }}">{{ $item->claimer->initials() }}</span>
