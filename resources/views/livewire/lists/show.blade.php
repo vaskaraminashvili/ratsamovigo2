@@ -196,7 +196,7 @@
                 </div>
                 <ul class="mt-2.5 space-y-1.5">
                     @foreach ($groupItems as $item)
-                        <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="false" />
+                        <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" />
                     @endforeach
                 </ul>
             </section>
