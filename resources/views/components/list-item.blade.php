@@ -25,7 +25,9 @@
         .($isDone ? $check : '').'</span>';
 @endphp
 
-<li wire:key="item-{{ $item->id }}-{{ $done ? 1 : 0 }}-{{ $item->claimed_by ?? 0 }}" x-data="{ flip: false, claim: false }"
+<li wire:key="item-{{ $item->id }}-{{ $done ? 1 : 0 }}-{{ $item->claimed_by ?? 0 }}"
+    x-data="{ flip: false, mine: @js($claimedByMe),
+        toggle() { this.mine = ! this.mine; $wire.toggleClaim({{ $item->id }}).catch(() => this.mine = ! this.mine) } }"
     {{ $attributes->class([
         'relative flex items-center gap-1 overflow-hidden rounded-2xl border pr-2 transition-colors',
         'border-dashed border-ink-600 bg-transparent' => $done,
@@ -81,24 +83,22 @@
     </button>
 
     @if (! $done && $multiMember)
-        <div class="shrink-0 pl-1" x-show="!flip">
-            @if (! $item->claimed_by)
-                <button type="button" x-show="!claim" @click="claim = true; $wire.toggleClaim({{ $item->id }}).catch(() => claim = false)" class="h-11 rounded-full px-3 text-[13px] font-medium text-ink-400 hover:text-primary-300">ვიყიდი</button>
-                <span x-show="claim" x-cloak class="flex h-11 items-center gap-1.5 rounded-full bg-primary-400/15 py-1 pl-1 pr-3 text-[13px] font-semibold text-primary-300">
-                    <x-avatar :user="auth()->user()" class="size-6 rounded-full text-[11px] font-bold text-on" />მე
+        {{-- small circle on the right: empty "+" to claim, avatar when claimed (same for every member) --}}
+        @if ($item->claimed_by && ! $claimedByMe)
+            <span class="shrink-0 px-2" x-show="!flip" title="ყიდულობს: {{ $item->claimer->name }}">
+                <x-avatar :user="$item->claimer" class="size-6 rounded-full text-[11px] font-bold text-on" />
+                <span class="sr-only">ყიდულობს: {{ $item->claimer->name }}</span>
+            </span>
+        @else
+            <button type="button" x-show="!flip" @click="toggle()" class="grid size-10 shrink-0 place-items-center"
+                    :aria-label="mine ? 'აღარ ვიყიდი' : 'ვიყიდი'" :title="mine ? 'შენ ყიდულობ' : 'ვიყიდი'">
+                <span x-show="!mine" @if ($claimedByMe) x-cloak @endif class="grid size-6 place-items-center rounded-full border border-dashed border-ink-500 text-ink-400">
+                    <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 </span>
-            @elseif ($claimedByMe)
-                <button type="button" x-show="!claim" @click="claim = true; $wire.toggleClaim({{ $item->id }}).catch(() => claim = false)" aria-label="აღარ ვიყიდი"
-                        class="flex h-11 items-center gap-1.5 rounded-full bg-primary-400/15 py-1 pl-1 pr-3 text-[13px] font-semibold text-primary-300">
-                    <x-avatar :user="auth()->user()" class="size-6 rounded-full text-[11px] font-bold text-on" />მე
-                </button>
-                <button type="button" x-show="claim" x-cloak @click="claim = false; $wire.toggleClaim({{ $item->id }}).catch(() => claim = true)" class="h-11 rounded-full px-3 text-[13px] font-medium text-ink-400">ვიყიდი</button>
-            @else
-                <span class="flex h-8 max-w-[7.5rem] items-center gap-1.5 rounded-full bg-ink-800 py-1 pl-1 pr-3 text-[13px] font-medium text-ink-200">
-                    <x-avatar :user="$item->claimer" class="size-6 shrink-0 rounded-full text-[11px] font-bold text-on" />
-                    <span class="truncate">{{ $item->claimer->name }}</span>
+                <span x-show="mine" @if (! $claimedByMe) x-cloak @endif>
+                    <x-avatar :user="auth()->user()" class="size-6 rounded-full text-[11px] font-bold text-on" />
                 </span>
-            @endif
-        </div>
+            </button>
+        @endif
     @endif
 </li>
