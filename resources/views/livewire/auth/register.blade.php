@@ -8,7 +8,7 @@
 
     @if ($invitedTo)
         <div class="mt-6 flex items-center gap-3 rounded-2xl border border-primary-line/30 bg-primary-400/10 p-3.5">
-            <span class="grid size-9 place-items-center rounded-full font-bold text-on {{ $invitedTo->owner->avatarColorClass() }}">{{ $invitedTo->owner->initials() }}</span>
+            <x-avatar :user="$invitedTo->owner" class="size-9 rounded-full font-bold text-on" />
             <p class="text-[14px] leading-snug text-ink-200">ანგარიშის შექმნის შემდეგ შეუერთდები სიას <span class="font-semibold text-ink-100">„{{ $invitedTo->name }}“</span>.</p>
         </div>
     @endif

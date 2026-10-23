@@ -4,7 +4,7 @@
     </a>
 
     <section class="mt-2 flex items-center gap-4">
-        <span class="grid size-16 shrink-0 place-items-center rounded-full text-2xl font-bold text-on {{ auth()->user()->avatarColorClass() }}">{{ auth()->user()->initials() }}</span>
+        <x-avatar :user="auth()->user()" class="size-16 shrink-0 rounded-full text-2xl font-bold text-on" />
         <div class="min-w-0">
             <h1 class="truncate text-2xl font-extrabold leading-tight">{{ auth()->user()->name }}</h1>
             <p class="truncate text-ink-400">{{ auth()->user()->email }}</p>
@@ -113,6 +113,20 @@
     </div>
 
     <div x-show="tab === 'account'" role="tabpanel">
+    <section class="mt-9" aria-labelledby="avatar-h">
+        <h2 id="avatar-h" class="text-lg font-bold">ფოტო</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+            <label class="btn-ghost h-11 cursor-pointer px-4 text-[14px]">
+                <span wire:loading.remove wire:target="avatar">{{ auth()->user()->avatarUrl() ? 'შეცვლა' : 'ატვირთვა' }}</span>
+                <span wire:loading wire:target="avatar">იტვირთება…</span>
+                <input type="file" wire:model="avatar" accept="image/jpeg,image/png,image/webp" class="sr-only">
+            </label>
+            @if (auth()->user()->avatarUrl())
+                <button type="button" wire:click="removeAvatar" class="btn-danger h-11 px-4 text-[14px]">წაშლა</button>
+            @endif
+        </div>
+        @error('avatar') <p class="field-error">{{ $message }}</p> @enderror
+    </section>
     {{-- Theme --}}
     <section class="mt-9" aria-labelledby="theme-h">
         <h2 id="theme-h" class="text-lg font-bold">თემა</h2>

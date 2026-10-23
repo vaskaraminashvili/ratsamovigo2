@@ -7,6 +7,7 @@ use App\Enums\Unit;
 use App\Livewire\Concerns\ValidatesIngredients;
 use App\Models\SavedItem;
 use App\Models\User;
+use App\Support\CoverImage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -14,12 +15,16 @@ use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts::app')]
 #[Title('პროფილი')]
 class Profile extends Component
 {
-    use ValidatesIngredients;
+    use ValidatesIngredients, WithFileUploads;
+
+    public ?TemporaryUploadedFile $avatar = null;
 
     public string $name = '';
 
@@ -51,6 +56,35 @@ class Profile extends Component
         $this->email = $user->email;
         $this->theme = $user->theme ?? Theme::System->value;
         $this->notifyActivity = $user->notify_activity;
+    }
+
+    public function updatedAvatar(): void
+    {
+        $this->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [
+            'avatar.image' => 'ატვირთე სურათი.',
+            'avatar.mimes' => 'დაშვებულია JPG, PNG ან WebP.',
+            'avatar.max' => 'სურათი 2 მბ-ზე მცირე უნდა იყოს.',
+            'avatar.uploaded' => 'სურათი 2 მბ-ზე მცირე უნდა იყოს.',
+        ]);
+
+        $user = auth()->user();
+        $oldPath = $user->avatar_path;
+
+        $user->update(['avatar_path' => CoverImage::store($this->avatar, 'avatars', 256)]);
+        CoverImage::delete($oldPath);
+
+        $this->reset('avatar');
+        $this->dispatch('toast', message: 'ფოტო შენახულია');
+    }
+
+    public function removeAvatar(): void
+    {
+        $user = auth()->user();
+
+        CoverImage::delete($user->avatar_path);
+        $user->update(['avatar_path' => null]);
     }
 
     public function setTheme(string $theme): void

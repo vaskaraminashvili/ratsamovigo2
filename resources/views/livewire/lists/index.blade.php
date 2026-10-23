@@ -84,7 +84,7 @@
                         </div>
                         <div class="flex -space-x-2">
                             @foreach ($list->members->take(3) as $member)
-                                <span class="grid size-8 place-items-center rounded-full text-[13px] font-bold text-on ring-2 ring-ink-950 {{ $member->avatarColorClass() }}" title="{{ $member->name }}">{{ $member->initials() }}</span>
+                                <x-avatar :user="$member" class="size-8 rounded-full text-[13px] font-bold text-on ring-2 ring-ink-950" title="{{ $member->name }}" />
                             @endforeach
                         </div>
                     </a>

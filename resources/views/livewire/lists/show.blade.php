@@ -16,7 +16,7 @@
             <button type="button" @click="sheet = 'share'" class="flex shrink-0 items-center rounded-full p-1 hover:bg-ink-800" aria-label="სიის გაზიარება და წევრები">
                 <span class="flex -space-x-2">
                     @foreach ($members->take(2) as $member)
-                        <span class="grid size-7 place-items-center rounded-full text-xs font-bold text-on ring-2 ring-ink-950 {{ $member->avatarColorClass() }}">{{ $member->initials() }}</span>
+                        <x-avatar :user="$member" class="size-7 rounded-full text-xs font-bold text-on ring-2 ring-ink-950" />
                     @endforeach
                     <span class="grid size-7 place-items-center rounded-full bg-ink-800 text-ink-200 ring-2 ring-ink-950">
                         <svg class="size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
@@ -45,7 +45,7 @@
                 <ul class="divide-y divide-ink-800 rounded-2xl border border-ink-700 bg-ink-900 px-4">
                     @foreach ($activity as $event)
                         <li class="flex items-start gap-3 py-3">
-                            <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold text-on {{ $event['user']->avatarColorClass() }}">{{ $event['user']->initials() }}</span>
+                            <x-avatar :user="$event['user']" class="mt-0.5 size-9 shrink-0 text-xs" />
                             <div class="min-w-0">
                                 <p class="text-[15px] leading-snug"><span class="font-semibold">{{ $event['user']->id === auth()->id() ? 'შენ' : $event['user']->name }}</span> {{ $event['text'] }}</p>
                                 <p class="mt-0.5 text-[13px] text-ink-400">{{ $event['at']->locale('ka')->diffForHumans() }}</p>
@@ -122,7 +122,7 @@
                                     <span class="min-w-0 flex-1 truncate font-medium">{{ $option->label }}</span>
                                     <span class="flex -space-x-1.5">
                                         @foreach ($option->votes->take(4) as $vote)
-                                            <span class="grid size-5 place-items-center rounded-full text-[10px] font-bold text-on ring-2 ring-ink-900 {{ $vote->user->avatarColorClass() }}" title="{{ $vote->user->name }}">{{ $vote->user->initials() }}</span>
+                                            <x-avatar :user="$vote->user" class="size-5 rounded-full text-[10px] font-bold text-on ring-2 ring-ink-900" title="{{ $vote->user->name }}" />
                                         @endforeach
                                     </span>
                                     <span class="w-10 shrink-0 text-right text-[14px] font-semibold tabular-nums">{{ $percent }}%</span>
@@ -380,7 +380,7 @@
                         <li wire:key="going-{{ $member->id }}">
                             <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-ink-700 px-3.5 py-3" :class="going.to.includes({{ $member->id }}) ? 'border-primary-line bg-primary-400/10' : ''">
                                 <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" :checked="going.to.includes({{ $member->id }})" @change="toggleGoing({{ $member->id }})">
-                                <span class="grid size-8 place-items-center rounded-full text-[13px] font-bold text-on {{ $member->avatarColorClass() }}">{{ $member->initials() }}</span>
+                                <x-avatar :user="$member" class="size-8 rounded-full text-[13px] font-bold text-on" />
                                 <span class="font-medium">{{ $member->name }}</span>
                             </label>
                         </li>
@@ -538,7 +538,7 @@
         <ul class="mt-2 divide-y divide-ink-800">
             @foreach ($members as $member)
                 <li class="flex items-center gap-3 py-3">
-                    <span class="grid size-10 place-items-center rounded-full font-bold text-on {{ $member->avatarColorClass() }}">{{ $member->initials() }}</span>
+                    <x-avatar :user="$member" class="size-10 rounded-full font-bold text-on" />
                     <span class="flex-1 font-medium">{{ $member->id === auth()->id() ? 'შენ' : $member->name }}</span>
                     <span class="text-[13px] text-ink-400">{{ $member->id === $shoppingList->owner_id ? 'მფლობელი' : 'წევრი' }}</span>
                     @if ($isOwner && $member->id !== $shoppingList->owner_id)

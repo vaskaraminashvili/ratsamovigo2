@@ -5,7 +5,7 @@
         <div class="my-auto py-10">
             <div class="flex -space-x-3">
                 @foreach ($members->take(3) as $member)
-                    <span class="grid size-14 place-items-center rounded-full text-xl font-bold text-on ring-4 ring-ink-950 {{ $member->avatarColorClass() }}">{{ $member->initials() }}</span>
+                    <x-avatar :user="$member" class="size-14 rounded-full text-xl font-bold text-on ring-4 ring-ink-950" />
                 @endforeach
                 <span class="grid size-14 place-items-center rounded-full border-2 border-dashed border-ink-600 text-ink-400 ring-4 ring-ink-950">
                     <svg class="size-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>

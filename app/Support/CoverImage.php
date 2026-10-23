@@ -16,7 +16,7 @@ class CoverImage
     /**
      * Resize and re-encode an uploaded image as JPEG and store it. Returns the stored path.
      */
-    public static function store(UploadedFile $file): string
+    public static function store(UploadedFile $file, string $directory = 'covers', int $maxWidth = self::MAX_WIDTH): string
     {
         $source = @imagecreatefromstring((string) file_get_contents($file->getRealPath()));
 
@@ -26,7 +26,7 @@ class CoverImage
 
         $width = imagesx($source);
         $height = imagesy($source);
-        $targetWidth = min($width, self::MAX_WIDTH);
+        $targetWidth = min($width, $maxWidth);
         $targetHeight = max(1, (int) round($height * ($targetWidth / $width)));
 
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
@@ -37,7 +37,7 @@ class CoverImage
         imagejpeg($canvas, null, 82);
         $contents = (string) ob_get_clean();
 
-        $path = 'covers/'.Str::uuid().'.jpg';
+        $path = $directory.'/'.Str::uuid().'.jpg';
         Storage::disk(self::DISK)->put($path, $contents);
 
         return $path;

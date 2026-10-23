@@ -9,8 +9,8 @@
             <x-app-logo :href="route('lists.index')" />
 
             <div class="relative" x-data="{ menu: false }" @click.outside="menu = false" @keydown.escape.window="menu = false">
-                <button type="button" @click="menu = !menu" class="relative grid size-11 place-items-center rounded-full font-bold text-on {{ auth()->user()->avatarColorClass() }}" aria-label="{{ __('ანგარიშის მენიუ') }}" :aria-expanded="menu">
-                    {{ auth()->user()->initials() }}
+                <button type="button" @click="menu = !menu" class="relative size-11" aria-label="{{ __('ანგარიშის მენიუ') }}" :aria-expanded="menu">
+                    <x-avatar :user="auth()->user()" class="size-11" />
                     @if (auth()->user()->unreadNotifications()->exists())
                         <span class="absolute right-0 top-0 size-3 rounded-full bg-urgent-400 ring-2 ring-ink-950" aria-label="ახალი შეტყობინება"></span>
                     @endif
