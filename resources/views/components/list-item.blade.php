@@ -1,4 +1,4 @@
-@props(['item', 'showUrgentMark' => false, 'multiMember' => false, 'savedKeys' => []])
+@props(['item', 'showUrgentMark' => false, 'multiMember' => false, 'savedKeys' => [], 'sortable' => false])
 
 @php
     $me = auth()->id();
@@ -100,5 +100,11 @@
                 </span>
             </button>
         @endif
+    @endif
+
+    @if ($sortable)
+        <span wire:sort:handle class="grid size-11 shrink-0 cursor-grab touch-none place-items-center rounded-full text-ink-500 hover:bg-ink-800" aria-label="გადასატანად" title="გადატანა">
+            <svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"/></svg>
+        </span>
     @endif
 </li>

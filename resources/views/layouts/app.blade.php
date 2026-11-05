@@ -5,7 +5,7 @@
 </head>
 <body class="min-h-dvh">
     <div class="mx-auto max-w-md pb-32">
-        <header class="sticky top-0 z-20 flex items-center justify-between bg-ink-950/85 px-5 pb-3 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur">
+        <header class="sticky top-0 z-20 flex items-center justify-between bg-ink-950/85 px-5 pb-3 pt-[calc(max(1rem,env(safe-area-inset-top))+10px)] backdrop-blur">
             <x-app-logo :href="route('lists.index')" />
 
             <div class="relative" x-data="{ menu: false }" @click.outside="menu = false" @keydown.escape.window="menu = false">

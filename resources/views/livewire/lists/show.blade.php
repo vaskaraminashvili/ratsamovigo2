@@ -7,7 +7,7 @@
 @endphp
 
 <div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price ? '1' : '0' }}" @click.outside="addMenu = false">
-    <header class="sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[max(.75rem,env(safe-area-inset-top))] backdrop-blur">
+    <header class="sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[calc(max(.75rem,env(safe-area-inset-top))+10px)] backdrop-blur">
         <div class="flex items-center gap-1">
             <a href="{{ route('lists.index') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="ჩემს სიებზე დაბრუნება">
                 <svg class="size-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
@@ -157,7 +157,7 @@
                     </h2>
                     <ul class="mt-2.5 min-h-12 space-y-1.5" wire:sort="sortItem" wire:sort:group="items" wire:sort:group-id="{{ $priority->value }}">
                         @foreach ($groupItems as $item)
-                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" wire:sort:item="{{ $item->id }}" />
+                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" :sortable="true" wire:sort:item="{{ $item->id }}" />
                         @endforeach
                     </ul>
                 </section>
