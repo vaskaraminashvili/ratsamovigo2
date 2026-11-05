@@ -30,7 +30,14 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Pro by default so existing feature tests are not limited; use free() to test the limits.
+            'is_pro' => true,
         ];
+    }
+
+    public function free(): static
+    {
+        return $this->state(fn (array $attributes) => ['is_pro' => false]);
     }
 
     /**

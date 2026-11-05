@@ -129,9 +129,10 @@
                     <legend class="field-label">ნაყიდი ნივთები</legend>
                     <div class="grid grid-cols-2 gap-2">
                         @foreach (['strike' => ['იხაზება', 'ერთჯერადი სიისთვის'], 'hide' => ['იმალება', 'ყოველდღიური სიისთვის']] as $value => [$title, $hint])
-                            <label class="cursor-pointer rounded-2xl border p-3 transition {{ $boughtBehavior === $value ? 'border-primary-line bg-primary-400/10' : 'border-ink-700' }}">
-                                <input type="radio" wire:model.live="boughtBehavior" value="{{ $value }}" class="sr-only">
-                                <span class="block font-semibold">{{ $title }}</span>
+                            @php $lockedOption = $value === 'hide' && ! $isPro; @endphp
+                            <label class="cursor-pointer rounded-2xl border p-3 transition {{ $boughtBehavior === $value ? 'border-primary-line bg-primary-400/10' : 'border-ink-700' }}" @if ($lockedOption) @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })" @endif>
+                                <input type="radio" wire:model.live="boughtBehavior" value="{{ $value }}" class="sr-only" @disabled($lockedOption)>
+                                <span class="block font-semibold"><span @class(['line-through opacity-60' => $lockedOption])>{{ $title }}</span> @if ($lockedOption) <x-pro-badge /> @endif</span>
                                 <span class="block text-[13px] text-ink-400">{{ $hint }}</span>
                             </label>
                         @endforeach

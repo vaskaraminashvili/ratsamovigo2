@@ -1,4 +1,4 @@
-@props(['remember' => false])
+@props(['remember' => false, 'locked' => false])
 
 {{-- Fields for a dish and its ingredient rows. Needs `dishForm()` state in the surrounding Alpine scope. --}}
 <div class="space-y-5">
@@ -29,10 +29,10 @@
     </div>
 
     @if ($remember)
-        <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5">
-            <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="remember">
+        <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5" @if ($locked) @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })" @endif>
+            <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="remember" @disabled($locked)>
             <span>
-                <span class="block font-semibold">კერძის დამახსოვრება</span>
+                <span class="block font-semibold"><span @class(['line-through opacity-60' => $locked])>კერძის დამახსოვრება</span> @if ($locked) <x-pro-badge /> @endif</span>
                 <span class="block text-[13px] text-ink-400">შემდეგ „შენახულიდან“ სწრაფად დაამატებ.</span>
             </span>
         </label>

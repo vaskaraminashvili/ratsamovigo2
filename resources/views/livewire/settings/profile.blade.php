@@ -77,15 +77,23 @@
             <h2 id="dishes-h" class="text-lg font-bold">შენახული კერძები</h2>
             <p class="mt-1 text-[14px] text-ink-300">კერძი ინგრედიენტებით. სიაში ერთი შეხებით დაამატებ.</p>
 
+            @unless ($isPro)
+                <p class="mt-3 rounded-2xl border border-primary-line bg-primary-400/10 p-3.5 text-[14px]"><x-pro-badge /> კერძების შენახვა Pro ვერსიაშია.</p>
+            @endunless
+
             <form class="mt-4" @submit.prevent="if (!ready) return; $wire.saveDish(id, name.trim(), payload())">
                 <p x-show="id !== null" x-cloak class="mb-3 text-[14px] font-semibold text-primary-fg">რედაქტირება</p>
-                <x-dish-form>
-                    @error('ingredients') <p class="field-error">{{ $message }}</p> @enderror
-                    <div class="flex gap-3">
-                        <button type="button" x-show="id !== null" x-cloak @click="clear()" class="btn-ghost flex-1">გაუქმება</button>
-                        <button type="submit" class="btn-primary flex-1 disabled:opacity-40" :disabled="!ready" x-text="id === null ? 'კერძის შენახვა' : 'განახლება'"></button>
+                <fieldset class="contents" @disabled(! $isPro)>
+                    <div @class(['opacity-50' => ! $isPro])>
+                        <x-dish-form>
+                            @error('ingredients') <p class="field-error">{{ $message }}</p> @enderror
+                            <div class="flex gap-3">
+                                <button type="button" x-show="id !== null" x-cloak @click="clear()" class="btn-ghost flex-1">გაუქმება</button>
+                                <button type="submit" @class(['btn-primary flex-1 disabled:opacity-40', 'line-through' => ! $isPro]) :disabled="!ready" x-text="id === null ? 'კერძის შენახვა' : 'განახლება'"></button>
+                            </div>
+                        </x-dish-form>
                     </div>
-                </x-dish-form>
+                </fieldset>
             </form>
 
             @if ($dishes->isEmpty())
@@ -132,8 +140,13 @@
         <h2 id="theme-h" class="text-lg font-bold">თემა</h2>
         <div class="mt-3 grid grid-cols-2 gap-3">
             @foreach ($themes as $value => $label)
+                @php $locked = ! $isPro && ! in_array($value, \App\Support\ProLimits::FREE_THEMES, true); @endphp
                 <button type="button" wire:key="theme-{{ $value }}"
-                        @click="theme = @js($value); window.rwTheme && window.rwTheme.set(@js($value)); $wire.setTheme(@js($value))"
+                        @if ($locked)
+                            @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })"
+                        @else
+                            @click="theme = @js($value); window.rwTheme && window.rwTheme.set(@js($value)); $wire.setTheme(@js($value))"
+                        @endif
                         :aria-pressed="(theme === @js($value)).toString()"
                         class="rounded-2xl border p-2.5 text-left transition"
                         :class="theme === @js($value) ? 'border-primary-line bg-primary-400/10' : 'border-ink-700'">
@@ -149,7 +162,10 @@
                             <span class="mt-1.5 flex gap-1.5"><span class="size-2.5 rounded-full bg-primary-400"></span><span class="size-2.5 rounded-full bg-urgent-400"></span></span>
                         </span>
                     @endif
-                    <span class="mt-2 block px-0.5 text-[14px] font-semibold">{{ $label }}</span>
+                    <span class="mt-2 flex items-center gap-2 px-0.5 text-[14px] font-semibold">
+                        <span @class(['line-through opacity-60' => $locked])>{{ $label }}</span>
+                        @if ($locked) <x-pro-badge /><span class="sr-only">— მხოლოდ Pro ვერსიაში</span> @endif
+                    </span>
                 </button>
             @endforeach
         </div>
