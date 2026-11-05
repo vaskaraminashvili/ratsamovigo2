@@ -23,6 +23,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
+ * @property bool $is_pro
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -38,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $attributes = [
         'notify_activity' => true,
+        'is_pro' => false,
     ];
 
     protected static function booted(): void
@@ -56,7 +58,13 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'notify_activity' => 'boolean',
+            'is_pro' => 'boolean',
         ];
+    }
+
+    public function isPro(): bool
+    {
+        return $this->is_pro;
     }
 
     /**

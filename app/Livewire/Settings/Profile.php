@@ -8,6 +8,7 @@ use App\Livewire\Concerns\ValidatesIngredients;
 use App\Models\SavedItem;
 use App\Models\User;
 use App\Support\CoverImage;
+use App\Support\ProLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -90,6 +91,12 @@ class Profile extends Component
     public function setTheme(string $theme): void
     {
         $validated = validator(['theme' => $theme], ['theme' => [Rule::enum(Theme::class)]])->validate();
+
+        if (! ProLimits::themeAllowed(auth()->user(), $validated['theme'])) {
+            $this->dispatch('toast', message: ProLimits::LOCKED_MESSAGE);
+
+            return;
+        }
 
         auth()->user()->update(['theme' => $validated['theme']]);
 
@@ -191,6 +198,12 @@ class Profile extends Component
      */
     public function saveDish(?int $dishId, string $name, array $ingredients): void
     {
+        if (! auth()->user()->isPro()) {
+            $this->dispatch('toast', message: ProLimits::LOCKED_MESSAGE);
+
+            return;
+        }
+
         $dishName = validator(['name' => trim($name)], [
             'name' => ['required', 'string', 'max:120'],
         ], ['name.required' => 'დაწერე კერძის სახელი.'])->validate()['name'];
@@ -290,6 +303,7 @@ class Profile extends Component
             'savedItems' => auth()->user()->savedItems()->orderBy('name')->get(),
             'dishes' => auth()->user()->dishes()->with('ingredients')->orderBy('name')->get(),
             'units' => Unit::options(),
+            'isPro' => auth()->user()->isPro(),
             'themes' => [
                 'system' => 'სისტემის',
                 'night' => 'ღამე',

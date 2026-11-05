@@ -4,6 +4,7 @@ namespace App\Livewire\Concerns;
 
 use App\Models\ShoppingList;
 use App\Models\User;
+use App\Support\ProLimits;
 
 trait JoinsPendingInvite
 {
@@ -21,6 +22,12 @@ trait JoinsPendingInvite
         $list = ShoppingList::query()->where('invite_token', $token)->first();
 
         if ($list === null) {
+            return;
+        }
+
+        if ($blocker = ProLimits::joinBlocker($user, $list)) {
+            session()->flash('status', $blocker);
+
             return;
         }
 

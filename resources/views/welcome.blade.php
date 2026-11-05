@@ -113,10 +113,46 @@
             </dl>
         </section>
 
+        <section id="pricing" class="border-t border-ink-800 py-12" aria-labelledby="pricing-h">
+            <h2 id="pricing-h" class="text-3xl font-bold">დაიწყე უფასოდ</h2>
+            <p class="mt-3 max-w-[38ch] text-ink-300">ერთი სია ორი ადამიანისთვის უფასოა. მეტი სია, მეტი ხალხი და ყველა თემა Pro-შია.</p>
+
+            @php
+                $check = '<svg class="mt-0.5 size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>';
+            @endphp
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                <article class="rounded-3xl border border-ink-800 bg-ink-900 p-6" aria-labelledby="plan-free">
+                    <h3 id="plan-free" class="text-lg font-bold">უფასო</h3>
+                    <p class="mt-2 text-5xl font-extrabold leading-none">0₾</p>
+                    <ul class="mt-6 space-y-3 text-[15px]">
+                        @foreach (['1 სია', 'სიაზე 2 წევრამდე', 'სასწრაფო, გამოკითხვა და „ვიყიდი“', 'თემები: სისტემის და ღამე'] as $feature)
+                            <li class="flex gap-3"><span class="text-cart-fg">{!! $check !!}</span><span>{{ $feature }}</span></li>
+                        @endforeach
+                        @foreach (['ბევრი სია და წევრი', 'ყველა თემა', 'დაჯგუფება და ნაყიდის დამალვა', 'საუკეთესო ფასის ძებნა'] as $feature)
+                            <li class="flex gap-3 text-ink-500"><span class="mt-0.5 size-5 shrink-0" aria-hidden="true"></span><span><span class="line-through">{{ $feature }}</span> <x-pro-badge /><span class="sr-only">— მხოლოდ Pro ვერსიაში</span></span></li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('register') }}" wire:navigate class="btn-ghost mt-7 w-full">შექმენი უფასო სია</a>
+                </article>
+
+                <article class="rounded-3xl border border-primary-line bg-ink-850 p-6" aria-labelledby="plan-pro">
+                    <h3 id="plan-pro" class="flex items-center gap-2 text-lg font-bold">Pro</h3>
+                    <p class="mt-2 text-5xl font-extrabold leading-none">{{ \App\Support\ProLimits::PRICE }}<span class="ml-1.5 text-lg font-medium text-ink-400">/ თვე</span></p>
+                    <ul class="mt-6 space-y-3 text-[15px]">
+                        @foreach (['ულიმიტო სია', 'ულიმიტო წევრი', 'ყველა თემა', 'დაჯგუფება პრიორიტეტით', 'ნაყიდის დამალვა და „თავიდან“', 'საუკეთესო ფასის ძებნა'] as $feature)
+                            <li class="flex gap-3"><span class="text-cart-fg">{!! $check !!}</span><span>{{ $feature }}</span></li>
+                        @endforeach
+                    </ul>
+                    <p class="mt-7 rounded-full border border-ink-700 px-4 py-3 text-center text-[15px] text-ink-300">გადახდა მალე ჩაირთვება</p>
+                </article>
+            </div>
+        </section>
+
         <section class="pb-16 pt-4">
             <div class="rounded-[2rem] bg-primary-400 p-7 text-on">
                 <p class="text-[1.8rem] font-extrabold leading-[1.15]">შემდეგ ჯერზე ზარი აღარ დაგჭირდება.</p>
-                <p class="mt-3 text-on/75">უფასოა მთელი ოჯახისთვის.</p>
+                <p class="mt-3 text-on/75">დაიწყე უფასოდ. Pro-ზე მერე გადახვალ, თუ დაგჭირდება.</p>
                 <a href="{{ route('register') }}" wire:navigate class="btn mt-6 w-full bg-ink-950 text-ink-100 hover:bg-ink-900">შექმენი უფასო სია</a>
             </div>
         </section>

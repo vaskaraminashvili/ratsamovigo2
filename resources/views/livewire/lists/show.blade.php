@@ -1,12 +1,12 @@
 @php
     $multiMember = $members->count() > 1;
-    $grouped = $shoppingList->group_by_priority;
+    $grouped = $shoppingList->group_by_priority && $ownerPro;
     $leftCount = $openItems->count() + $dishLeft;
     $urgentCount = $openItems->where('priority', \App\Enums\Priority::Urgent)->count();
     $icon = fn (string $d) => '<svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="'.$d.'"/></svg>';
 @endphp
 
-<div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price ? '1' : '0' }}" @click.outside="addMenu = false">
+<div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price && $ownerPro ? '1' : '0' }}" @click.outside="addMenu = false">
     <header class="sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[calc(max(.75rem,env(safe-area-inset-top))+10px)] backdrop-blur">
         <div class="flex items-center gap-1">
             <a href="{{ route('lists.index') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="ჩემს სიებზე დაბრუნება">
@@ -446,7 +446,7 @@
         <p class="mt-2 text-ink-300">ინგრედიენტები ერთად დაჯგუფდება სიაში.</p>
         <form x-data="dishForm({ units })" class="mt-5"
               @submit.prevent="if (!ready) return; const n = name.trim(), p = payload(), r = remember; sheet = null; clear(); $wire.addDish(n, p, r)">
-            <x-dish-form :remember="true">
+            <x-dish-form :remember="true" :locked="! $isPro">
                 @error('ingredients') <p class="field-error">{{ $message }}</p> @enderror
                 <button type="submit" class="btn-primary w-full disabled:opacity-40" :disabled="!ready">სიაში დამატება</button>
             </x-dish-form>
@@ -595,10 +595,10 @@
                     <input id="settings-name" class="field" x-model="settings.name" maxlength="120">
                 </div>
 
-                <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5">
-                    <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="settings.group">
+                <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5" @unless ($isPro) @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })" @endunless>
+                    <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="settings.group" @disabled(! $isPro)>
                     <span>
-                        <span class="block font-semibold">დაჯგუფება პრიორიტეტით</span>
+                        <span class="block font-semibold"><span @class(['line-through opacity-60' => ! $isPro])>დაჯგუფება პრიორიტეტით</span> @unless ($isPro) <x-pro-badge /> @endunless</span>
                         <span class="block text-[13px] text-ink-400">სასწრაფო, საყიდელი და „თუ ნახავ“ ცალ-ცალკე ჩანს.</span>
                     </span>
                 </label>
@@ -607,19 +607,20 @@
                     <legend class="field-label">ნაყიდი ნივთები</legend>
                     <div class="grid grid-cols-2 gap-2">
                         @foreach (['strike' => ['იხაზება', 'ერთჯერადი სიისთვის'], 'hide' => ['იმალება', 'ყოველდღიური სიისთვის']] as $value => [$title, $hint])
-                            <label class="cursor-pointer rounded-2xl border p-3 transition" :class="settings.behavior === '{{ $value }}' ? 'border-primary-line bg-primary-400/10' : 'border-ink-700'">
-                                <input type="radio" class="sr-only" value="{{ $value }}" x-model="settings.behavior">
-                                <span class="block font-semibold">{{ $title }}</span>
+                            @php $lockedOption = $value === 'hide' && ! $isPro; @endphp
+                            <label class="cursor-pointer rounded-2xl border p-3 transition" :class="settings.behavior === '{{ $value }}' ? 'border-primary-line bg-primary-400/10' : 'border-ink-700'" @if ($lockedOption) @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })" @endif>
+                                <input type="radio" class="sr-only" value="{{ $value }}" x-model="settings.behavior" @disabled($lockedOption)>
+                                <span class="block font-semibold"><span @class(['line-through opacity-60' => $lockedOption])>{{ $title }}</span> @if ($lockedOption) <x-pro-badge /> @endif</span>
                                 <span class="block text-[13px] text-ink-400">{{ $hint }}</span>
                             </label>
                         @endforeach
                     </div>
                 </fieldset>
 
-                <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5">
-                    <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="settings.fetchPrice">
+                <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5" @unless ($isPro) @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })" @endunless>
+                    <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="settings.fetchPrice" @disabled(! $isPro)>
                     <span>
-                        <span class="block font-semibold">საუკეთესო ფასის ძებნა</span>
+                        <span class="block font-semibold"><span @class(['line-through opacity-60' => ! $isPro])>საუკეთესო ფასის ძებნა</span> @unless ($isPro) <x-pro-badge /> @endunless</span>
                         <span class="block text-[13px] text-ink-400">ნივთის სახელის აკრეფისას მაღაზიების ფასებს შემოგთავაზებს.</span>
                     </span>
                 </label>

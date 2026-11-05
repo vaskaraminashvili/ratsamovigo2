@@ -8,6 +8,7 @@ use App\Enums\Unit;
 use App\Models\ListItem;
 use App\Models\SavedItem;
 use App\Models\ShoppingList;
+use App\Support\ProLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
@@ -31,10 +32,18 @@ class Index extends Component
             'name.required' => 'დაწერე სიის სახელი.',
         ]);
 
+        if (! ProLimits::canHaveAnotherList(auth()->user())) {
+            $this->addError('name', ProLimits::ALREADY_IN_LIST);
+
+            return;
+        }
+
+        $behavior = auth()->user()->isPro() ? $validated['boughtBehavior'] : BoughtBehavior::Strike->value;
+
         $list = ShoppingList::create([
             'owner_id' => auth()->id(),
             'name' => trim($validated['name']),
-            'bought_behavior' => BoughtBehavior::from($validated['boughtBehavior']),
+            'bought_behavior' => BoughtBehavior::from($behavior),
         ]);
 
         $list->members()->attach(auth()->id());
@@ -125,6 +134,7 @@ class Index extends Component
         return view('livewire.lists.index', [
             'notifications' => $user->unreadNotifications()->latest()->limit(5)->get(),
             'lists' => $lists,
+            'isPro' => $user->isPro(),
             'urgentTotal' => (int) $lists->sum('urgent_count'),
             'pinned' => SavedItem::query()->where('user_id', $user->id)->orderBy('name')->limit(60)->get(),
             'greeting' => match (true) {

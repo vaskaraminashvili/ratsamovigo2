@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Priority;
 use App\Models\ShoppingList;
+use App\Support\ProLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,10 @@ class JoinListController extends Controller
     public function store(Request $request, string $token): RedirectResponse
     {
         $list = ShoppingList::query()->where('invite_token', $token)->firstOrFail();
+
+        if ($blocker = ProLimits::joinBlocker($request->user(), $list)) {
+            return redirect()->route('join.show', $token)->withErrors(['join' => $blocker]);
+        }
 
         $changes = $list->members()->syncWithoutDetaching([$request->user()->id]);
 

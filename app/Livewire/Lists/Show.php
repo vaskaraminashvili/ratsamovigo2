@@ -16,6 +16,7 @@ use App\Notifications\GoingToStoreNotification;
 use App\Support\CoverImage;
 use App\Support\ListActivity;
 use App\Support\ProductSearch;
+use App\Support\ProLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
@@ -197,7 +198,7 @@ class Show extends Component
             $this->createDishItem($dishName, $row['name'], $row['quantity'], $row['unit']);
         }
 
-        if ($remember) {
+        if ($remember && auth()->user()->isPro()) {
             $dish = auth()->user()->dishes()->firstOrCreate(['name' => $dishName]);
             $dish->ingredients()->delete();
             $dish->ingredients()->createMany(array_map(fn (array $row) => [
@@ -539,6 +540,12 @@ class Show extends Component
     {
         Gate::authorize('view', $this->shoppingList);
 
+        if (! $this->shoppingList->owner->isPro()) {
+            $this->dispatch('toast', message: ProLimits::LOCKED_MESSAGE);
+
+            return;
+        }
+
         $this->shoppingList->items()->whereNotNull('bought_at')->update(['bought_at' => null, 'bought_by' => null]);
         $this->dispatch('toast', message: 'ნივთები სიაში დაბრუნდა');
     }
@@ -555,11 +562,14 @@ class Show extends Component
             ],
         )->validate();
 
+        // Free owners can rename the list; the Pro settings keep their stored values.
+        $pro = auth()->user()->isPro();
+
         $this->shoppingList->update([
             'name' => $validated['name'],
-            'bought_behavior' => $validated['boughtBehavior'],
-            'group_by_priority' => $groupByPriority,
-            'fetch_best_price' => $fetchBestPrice ?? $this->shoppingList->fetch_best_price,
+            'bought_behavior' => $pro ? $validated['boughtBehavior'] : $this->shoppingList->bought_behavior,
+            'group_by_priority' => $pro ? $groupByPriority : $this->shoppingList->group_by_priority,
+            'fetch_best_price' => $pro ? ($fetchBestPrice ?? $this->shoppingList->fetch_best_price) : $this->shoppingList->fetch_best_price,
         ]);
 
         $this->dispatch('toast', message: 'პარამეტრები შენახულია');
@@ -656,7 +666,8 @@ class Show extends Component
             ->orderBy('id')
             ->get();
 
-        $hide = $this->shoppingList->bought_behavior === BoughtBehavior::Hide;
+        $ownerPro = $this->shoppingList->owner->isPro();
+        $hide = $ownerPro && $this->shoppingList->bought_behavior === BoughtBehavior::Hide;
 
         $dishGroups = $items->filter(fn (ListItem $item) => $item->group_name !== null)->groupBy('group_name');
         $plain = $items->filter(fn (ListItem $item) => $item->group_name === null);
@@ -676,6 +687,8 @@ class Show extends Component
             'dishLeft' => $dishGroups->flatten()->reject->isBought()->count(),
             'dishes' => auth()->user()->dishes()->with('ingredients')->orderBy('name')->get(),
             'savedItems' => $savedItems,
+            'ownerPro' => $ownerPro,
+            'isPro' => auth()->user()->isPro(),
             'savedKeys' => $savedItems->pluck('name_key')->all(),
             'members' => $this->shoppingList->members()->get(),
             'openItems' => $open->sortBy(fn (ListItem $item) => [$item->priority->sortOrder(), $item->position ?? PHP_INT_MAX])->values(),

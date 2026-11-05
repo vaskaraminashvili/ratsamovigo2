@@ -27,6 +27,7 @@
                 <p class="rounded-2xl border border-cart-400/50 bg-cart-400/10 p-3.5 text-center font-medium" role="status">უკვე წევრი ხარ ამ სიაში</p>
                 <a href="{{ route('lists.show', $list) }}" class="btn-primary w-full">სიის გახსნა</a>
             @elseif (auth()->check())
+                @error('join') <p class="rounded-2xl border border-urgent-400/50 bg-urgent-400/10 p-3.5 text-center font-medium" role="alert">{{ $message }}</p> @enderror
                 <form method="POST" action="{{ route('join.store', $list->invite_token) }}">
                     @csrf
                     <button type="submit" class="btn-primary w-full">სიას შეერთება</button>
