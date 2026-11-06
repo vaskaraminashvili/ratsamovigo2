@@ -113,6 +113,26 @@
             </dl>
         </section>
 
+        <section id="install" class="border-t border-ink-800 py-12" aria-labelledby="install-h">
+            <h2 id="install-h" class="text-3xl font-bold">დააყენე ტელეფონზე, როგორც აპი</h2>
+            <p class="mt-3 max-w-[38ch] text-ink-300">App Store და Play Store არ გჭირდება. საიტი ეკრანზე აიქონად დაჯდება და აპივით გაიხსნება.</p>
+            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                @foreach ([
+                    'iPhone' => ['გახსენი ratsamovigo.ge Safari-ში ან Chrome-ში', 'დააჭირე „გაზიარებას“ (კვადრატი ისრით)', 'აირჩიე „Add to Home Screen“'],
+                    'Android' => ['გახსენი ratsamovigo.ge Chrome-ში', 'დააჭირე ⋮ მენიუს ზედა კუთხეში', 'აირჩიე „Install app“ ან „Add to Home screen“'],
+                ] as $phone => $steps)
+                    <article class="rounded-3xl border border-ink-800 bg-ink-900 p-6">
+                        <h3 class="text-lg font-bold">{{ $phone }}</h3>
+                        <ol class="mt-4 space-y-3">
+                            @foreach ($steps as $step)
+                                <li class="flex gap-3 text-ink-200"><span class="grid size-6 shrink-0 place-items-center rounded-full bg-primary-400 text-sm font-bold text-ink-950">{{ $loop->iteration }}</span><span>{{ $step }}</span></li>
+                            @endforeach
+                        </ol>
+                    </article>
+                @endforeach
+            </div>
+        </section>
+
         <section id="pricing" class="border-t border-ink-800 py-12" aria-labelledby="pricing-h">
             <h2 id="pricing-h" class="text-3xl font-bold">დაიწყე უფასოდ</h2>
             <p class="mt-3 max-w-[38ch] text-ink-300">ერთი სია ორი ადამიანისთვის უფასოა. მეტი სია, მეტი ხალხი და ყველა თემა Pro-შია.</p>
