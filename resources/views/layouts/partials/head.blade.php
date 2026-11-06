@@ -6,6 +6,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">
 <title>{{ $title ? $title.' – ' : '' }}{{ config('app.name') }}</title>
+@php($description = 'ერთი საერთო საყიდლების სია მთელი ოჯახისთვის. ვინც სახლშია, ამატებს, ვინც მაღაზიაშია, ყიდულობს. აღარ დარეკო, რომ იკითხო, რა იყიდო.')
+<meta name="description" content="{{ $description }}">
+{{-- Link previews on Facebook, Messenger, Viber and X --}}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ config('app.name') }}">
+<meta property="og:locale" content="ka_GE">
+<meta property="og:title" content="{{ $title ? $title.' – ' : '' }}{{ config('app.name') }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ url()->current() }}">
+<meta property="og:image" content="{{ url('/og.png') }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
