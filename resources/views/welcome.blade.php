@@ -165,4 +165,5 @@
             <a href="{{ route('terms') }}" wire:navigate class="hover:text-ink-300">პირობები</a>
         </p>
     </footer>
+    <x-help-bot />
 </x-layouts::guest>
