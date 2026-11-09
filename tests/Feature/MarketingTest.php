@@ -1,7 +1,5 @@
 <?php
 
-use App\Support\ProLimits;
-
 test('every page carries link-preview tags for Facebook', function () {
     foreach ([route('home'), route('login'), route('privacy')] as $url) {
         $this->get($url)
@@ -22,7 +20,7 @@ test('the landing page has the FAQ chat with the current price and a contact fal
         ->assertOk()
         ->assertSee('კითხვები და პასუხები')
         ->assertSee('როგორ დავამატო ოჯახი?')
-        ->assertSee(ProLimits::PRICE)
+        ->assertSee(config('pro.price'))
         ->assertSee(config('mail.from.address'));
 });
 

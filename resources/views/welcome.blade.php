@@ -158,7 +158,7 @@
 
                 <article class="rounded-3xl border border-primary-line bg-ink-850 p-6" aria-labelledby="plan-pro">
                     <h3 id="plan-pro" class="flex items-center gap-2 text-lg font-bold">Pro</h3>
-                    <p class="mt-2 text-5xl font-extrabold leading-none">{{ \App\Support\ProLimits::PRICE }}<span class="ml-1.5 text-lg font-medium text-ink-400">/ თვე</span></p>
+                    <p class="mt-2 text-5xl font-extrabold leading-none">{{ config('pro.price') }}<span class="ml-1.5 text-lg font-medium text-ink-400">/ თვე</span></p>
                     <ul class="mt-6 space-y-3 text-[15px]">
                         @foreach (['ულიმიტო სია', 'ულიმიტო წევრი', 'ყველა თემა', 'დაჯგუფება პრიორიტეტით', 'ნაყიდის დამალვა და „თავიდან“', 'საუკეთესო ფასის ძებნა'] as $feature)
                             <li class="flex gap-3"><span class="text-cart-fg">{!! $check !!}</span><span>{{ $feature }}</span></li>

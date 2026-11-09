@@ -7,7 +7,6 @@ use App\Livewire\Settings\Profile;
 use App\Models\ListItem;
 use App\Models\ShoppingList;
 use App\Models\User;
-use App\Support\ProLimits;
 use Livewire\Livewire;
 
 function listFor(User $owner, array $attributes = []): ShoppingList
@@ -185,5 +184,5 @@ test('the user:pro command grants and revokes pro', function () {
 });
 
 test('the home page shows the pro price', function () {
-    $this->get(route('home'))->assertOk()->assertSee(ProLimits::PRICE);
+    $this->get(route('home'))->assertOk()->assertSee(config('pro.price'));
 });

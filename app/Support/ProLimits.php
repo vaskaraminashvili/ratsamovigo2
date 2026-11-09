@@ -15,8 +15,6 @@ class ProLimits
     /** @var list<string> */
     public const FREE_THEMES = ['system', 'night'];
 
-    public const PRICE = '3₾';
-
     public const LOCKED_MESSAGE = 'ეს Pro ვერსიაშია';
 
     public const ALREADY_IN_LIST = 'უფასო ვერსიაში მხოლოდ ერთ სიაში შეგიძლია იყო. მეტისთვის საჭიროა Pro.';
