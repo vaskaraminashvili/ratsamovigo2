@@ -141,6 +141,15 @@ test('a free user can pick night but not a pro theme', function () {
     expect($user->fresh()->theme)->toBe('night');
 });
 
+test('only pro users can pick the glass theme', function (bool $isPro, string $expected) {
+    $user = User::factory()->state(['is_pro' => $isPro, 'theme' => 'night'])->create();
+    $this->actingAs($user);
+
+    Livewire::test(Profile::class)->call('setTheme', 'glass');
+
+    expect($user->fresh()->theme)->toBe($expected);
+})->with([[true, 'glass'], [false, 'night']]);
+
 test('a pro user can pick any theme', function () {
     $user = User::factory()->create();
     $this->actingAs($user);

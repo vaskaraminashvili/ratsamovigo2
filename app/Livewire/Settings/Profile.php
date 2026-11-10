@@ -310,6 +310,7 @@ class Profile extends Component
                 'matsoni' => 'მაწონი',
                 'tarkhuna' => 'ტარხუნა',
                 'churchkhela' => 'ჩურჩხელა',
+                'glass' => 'მინა',
             ],
         ]);
     }

@@ -9,7 +9,7 @@
 <body class="min-h-dvh">
     <div class="mx-auto max-w-md pb-32">
         <header
-            class="sticky top-0 z-20 flex items-center justify-between bg-ink-950/85 px-5 pb-3 pt-[calc(max(1rem,env(safe-area-inset-top))+14px)] backdrop-blur">
+            class="glass-bar sticky top-0 z-20 flex items-center justify-between bg-ink-950/85 px-5 pb-3 pt-[calc(max(1rem,env(safe-area-inset-top))+14px)] backdrop-blur">
             <x-app-logo :href="route('lists.index')" />
 
             <div class="relative" x-data="{ menu: false }" @click.outside="menu = false"
@@ -23,7 +23,7 @@
                     @endif
                 </button>
                 <div x-show="menu" x-cloak x-transition.origin.top.right
-                    class="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-ink-700 bg-ink-850 py-1 shadow-2xl">
+                    class="glass-menu absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-ink-700 bg-ink-850 py-1 shadow-2xl">
                     <p class="px-4 py-2 text-[13px] text-ink-400">შესული ხარ როგორც {{ auth()->user()->name }}</p>
                     <a href="{{ route('settings.profile') }}#saved" class="block px-4 py-2.5 hover:bg-ink-800">პროფილი
                         და შენახული</a>

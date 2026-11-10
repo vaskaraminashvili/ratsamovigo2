@@ -9,4 +9,5 @@ enum Theme: string
     case Matsoni = 'matsoni';
     case Tarkhuna = 'tarkhuna';
     case Churchkhela = 'churchkhela';
+    case Glass = 'glass';
 }
