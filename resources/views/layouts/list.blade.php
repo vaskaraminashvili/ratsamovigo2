@@ -5,6 +5,7 @@
 </head>
 <body class="min-h-dvh">
     <x-glass-defs />
+    <x-night-blobs />
     {{ $slot }}
 
     <x-toast />

@@ -332,6 +332,68 @@ html:not([data-palette='glass']) .dish-card[data-glow='5'] { --glow: var(--dg5);
     backdrop-filter: blur(28px) saturate(180%);
 }
 
+/* Night only: five soft milky blobs drift slowly behind the page, like the reference. One blur on the container keeps it cheap; screen blending brightens where they overlap so they read as merging. Alphas are low on purpose so white text keeps its contrast. */
+.night-blobs {
+    display: none;
+}
+
+[data-palette='night'] .night-blobs {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    filter: blur(48px);
+}
+
+/* The body paints its own background above negative z-index layers; let the html background show instead so the blobs sit between the two. */
+[data-palette='night'] body {
+    background-color: transparent;
+}
+
+.night-blobs i {
+    position: absolute;
+    border-radius: 50%;
+    mix-blend-mode: screen;
+    will-change: transform;
+    animation: night-drift 36.4s ease-in-out infinite alternate;
+}
+
+.night-blobs i:nth-child(even) {
+    animation-direction: alternate-reverse;
+}
+
+.night-blobs i:nth-child(1) { width: 60vmax; height: 60vmax; top: -15%; left: -20%; background: rgba(var(--blob-1, 205, 220, 225), 0.2); animation-duration: 41.8s; }
+.night-blobs i:nth-child(2) { width: 48vmax; height: 48vmax; top: 25%; right: -18%; background: rgba(var(--blob-2, 243, 222, 192), 0.16); animation-duration: 34.5s; animation-delay: -12s; }
+.night-blobs i:nth-child(3) { width: 70vmax; height: 70vmax; bottom: -25%; left: 5%; background: rgba(var(--blob-3, 70, 125, 140), 0.28); animation-duration: 47.3s; }
+.night-blobs i:nth-child(4) { width: 34vmax; height: 34vmax; top: 55%; left: 40%; background: rgba(var(--blob-4, 190, 205, 215), 0.12); animation-duration: 30.9s; animation-delay: -20s; }
+.night-blobs i:nth-child(5) { width: 22vmax; height: 22vmax; top: 8%; left: 55%; background: rgba(var(--blob-5, 250, 230, 205), 0.14); animation-duration: 27.3s; animation-delay: -6s; }
+
+@keyframes night-drift {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(13.2vw, 8.8vh, 0) scale(1.132); }
+    66% { transform: translate3d(-8.8vw, 15.4vh, 0) scale(0.934); }
+    100% { transform: translate3d(6.6vw, -11vh, 0) scale(1.066); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .night-blobs i {
+        animation: none;
+    }
+}
+
+/* Night, list page: cards are 75% opaque with a light blur so the drifting blobs show through. Only cards (rows, dish cards, banner, polls, bought section); popovers and sheets stay solid for readability. */
+[data-palette='night'] .night-frost li[class~='bg-ink-900'],
+[data-palette='night'] .night-frost section[class~='bg-ink-900'],
+[data-palette='night'] .night-frost button[class~='bg-ink-900'],
+[data-palette='night'] .night-frost ul[class~='bg-ink-900'],
+[data-palette='night'] .night-frost .dish-card {
+    background-color: color-mix(in srgb, var(--ink-900) 75%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+}
+
 /* Unlayered on purpose: page colour must beat any reset stylesheet. */
 html,
 body {

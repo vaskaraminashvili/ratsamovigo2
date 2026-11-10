@@ -8,6 +8,7 @@
 
 <body class="min-h-dvh">
     <x-glass-defs />
+    <x-night-blobs />
     <div class="mx-auto max-w-md pb-32">
         <header
             class="glass-bar sticky top-0 z-20 flex items-center justify-between bg-ink-950/85 px-5 pb-3 pt-[calc(max(1rem,env(safe-area-inset-top))+14px)] backdrop-blur">
