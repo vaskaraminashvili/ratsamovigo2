@@ -175,11 +175,12 @@
         {{-- Dishes --}}
         @foreach ($dishGroups as $groupName => $groupItems)
             @php
+                $spinHash = crc32($groupName.'spin');
                 $groupDone = $groupItems->filter->isBought()->count();
                 $groupTotal = $groupItems->count();
                 $groupComplete = $groupDone === $groupTotal;
             @endphp
-            <section class="mt-7" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
+            <section class="glass-card mt-7" data-glow="{{ crc32($groupName) % 6 }}" style="--spin-start: {{ intdiv($spinHash, 8) % 360 }}deg; --spin-dur: {{ 7 + $spinHash % 4 }}s" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
                 <div class="flex items-center gap-2">
                     <h2 class="min-w-0 flex-1 truncate text-[17px] font-bold">{{ $groupName }}</h2>
                     <span class="shrink-0 text-[13px] tabular-nums text-ink-400">{{ $groupDone }}/{{ $groupTotal }}</span>
@@ -322,7 +323,7 @@
                     :aria-pressed="(draft.priority === 'urgent').toString()" aria-label="ახალი ნივთი სასწრაფოა">
                 {!! $icon('m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z') !!}
             </button>
-            <button class="grid size-11 shrink-0 place-items-center rounded-full transition" :class="draft.name.trim() ? 'bg-primary-400 text-on' : 'bg-ink-800 text-ink-500'" :disabled="!draft.name.trim()" aria-label="დამატება">
+            <button class="glass-add grid size-11 shrink-0 place-items-center rounded-full transition" :class="draft.name.trim() ? 'bg-primary-400 text-on' : 'bg-ink-800 text-ink-500'" :disabled="!draft.name.trim()" aria-label="დამატება">
                 {!! $icon('M12 4.5v15m7.5-7.5h-15') !!}
             </button>
         </form>
