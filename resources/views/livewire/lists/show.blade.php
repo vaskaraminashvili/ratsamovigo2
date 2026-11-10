@@ -7,7 +7,7 @@
 @endphp
 
 <div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price && $ownerPro ? '1' : '0' }}" @click.outside="addMenu = false">
-    <header class="sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[calc(max(.75rem,env(safe-area-inset-top))+10px)] backdrop-blur">
+    <header class="glass-bar sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[calc(max(.75rem,env(safe-area-inset-top))+10px)] backdrop-blur">
         <div class="flex items-center gap-1">
             <a href="{{ route('lists.index') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="ჩემს სიებზე დაბრუნება">
                 <svg class="size-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
@@ -252,7 +252,7 @@
     </main>
 
     {{-- Quick add --}}
-    <div x-show="view === 'list'" class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-ink-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+    <div x-show="view === 'list'" class="glass-dock fixed inset-x-0 bottom-0 z-20 mx-auto max-w-md bg-ink-950 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
         @if ($savedItems->isNotEmpty() || $boughtItems->isNotEmpty())
             <div class="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
                 @foreach ($boughtItems->unique(fn ($bought) => \App\Models\SavedItem::keyFor($bought->name))->take(15) as $bought)
@@ -272,7 +272,7 @@
             </div>
         @endif
 
-        <div x-show="addMenu" x-cloak x-transition.opacity class="mb-2 overflow-hidden rounded-2xl border border-ink-700 bg-ink-850 p-1 shadow-[0_20px_40px_-15px_var(--shade)]">
+        <div x-show="addMenu" x-cloak x-transition.opacity class="glass-pop mb-2 overflow-hidden rounded-2xl border border-ink-700 bg-ink-850 p-1 shadow-[0_20px_40px_-15px_var(--shade)]">
             <button type="button" @click="addMenu = false; sheet = 'saved'" class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-ink-800">
                 {!! $icon('M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z') !!}
                 <span class="font-medium">შენახულიდან</span>
@@ -299,7 +299,7 @@
             </div>
         </div>
 
-        <div x-show="suggestions.length" x-cloak x-transition.opacity class="mb-2 max-h-64 overflow-y-auto rounded-2xl border border-ink-700 bg-ink-850 shadow-[0_20px_40px_-15px_var(--shade)]" role="listbox" aria-label="ფასების შემოთავაზებები">
+        <div x-show="suggestions.length" x-cloak x-transition.opacity class="glass-pop mb-2 max-h-64 overflow-y-auto rounded-2xl border border-ink-700 bg-ink-850 shadow-[0_20px_40px_-15px_var(--shade)]" role="listbox" aria-label="ფასების შემოთავაზებები">
             <template x-for="(row, index) in suggestions" :key="row.product_id + '-' + index">
                 <button type="button" role="option" @click="pickSuggestion(row)" class="block min-h-12 w-full border-b border-ink-700 px-4 py-2.5 text-left last:border-b-0 hover:bg-ink-800">
                     <span class="block truncate text-[15px] font-medium" x-text="row.name"></span>
@@ -308,7 +308,7 @@
             </template>
         </div>
 
-        <form @submit.prevent="add()" class="flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 p-1.5 focus-within:border-primary-line">
+        <form @submit.prevent="add()" class="glass-bar flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 p-1.5 focus-within:border-primary-line">
             <label for="draft" class="sr-only">ნივთის დამატება</label>
             <input id="draft" x-model="draft.name" enterkeyhint="done" autocomplete="off" maxlength="120"
                    class="h-10 min-w-0 flex-1 bg-transparent pl-4 text-[16px] outline-none placeholder:text-ink-500"
