@@ -180,7 +180,7 @@
                 $groupTotal = $groupItems->count();
                 $groupComplete = $groupDone === $groupTotal;
             @endphp
-            <section class="glass-card mt-7" data-glow="{{ crc32($groupName) % 6 }}" style="--spin-start: {{ intdiv($spinHash, 8) % 360 }}deg; --spin-dur: {{ 7 + $spinHash % 4 }}s" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
+            <section class="dish-card glass-card mt-7" data-glow="{{ crc32($groupName) % 6 }}" style="--spin-start: {{ intdiv($spinHash, 8) % 360 }}deg; --spin-dur: {{ 7 + $spinHash % 4 }}s" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
                 <div class="flex items-center gap-2">
                     <h2 class="min-w-0 flex-1 truncate text-[17px] font-bold">{{ $groupName }}</h2>
                     <span class="shrink-0 text-[13px] tabular-nums text-ink-400">{{ $groupDone }}/{{ $groupTotal }}</span>
