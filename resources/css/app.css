@@ -389,7 +389,16 @@ html:not([data-palette='glass']) .dish-card[data-glow='5'] { --glow: var(--dg5);
 [data-palette='night'] .night-frost button[class~='bg-ink-900'],
 [data-palette='night'] .night-frost ul[class~='bg-ink-900'],
 [data-palette='night'] .night-frost .dish-card {
-    background-color: color-mix(in srgb, var(--ink-900) 75%, transparent);
+    background-color: color-mix(in srgb, var(--ink-900) 20%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+}
+
+/* Night popups (add menu, price suggestions, new-item panel, account menu): same frosted look as the cards but 90% opaque, since they sit over text. */
+[data-palette='night'] .glass-pop,
+[data-palette='night'] .glass-menu,
+[data-palette='night'] .night-pop {
+    background-color: color-mix(in srgb, var(--ink-850) 90%, transparent);
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
 }

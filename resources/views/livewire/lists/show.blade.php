@@ -288,7 +288,7 @@
             </button>
         </div>
 
-        <div x-show="draft.name.trim()" x-cloak x-transition.opacity class="mb-2 rounded-3xl border border-ink-700 bg-ink-850 p-3 shadow-[0_20px_40px_-15px_var(--shade)]">
+        <div x-show="draft.name.trim()" x-cloak x-transition.opacity class="night-pop mb-2 rounded-3xl border border-ink-700 bg-ink-850 p-3 shadow-[0_20px_40px_-15px_var(--shade)]">
             <x-qty-picker target="draft" />
 
             <div class="mt-3 grid grid-cols-3 gap-2" role="group" aria-label="პრიორიტეტი">
