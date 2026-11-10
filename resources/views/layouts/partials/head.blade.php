@@ -38,6 +38,9 @@
   }
   function apply() {
     document.documentElement.setAttribute('data-palette', resolve());
+    // SVG backdrop refraction only renders in Chromium; other engines keep the plain blur.
+    var brands = (navigator.userAgentData && navigator.userAgentData.brands) || [];
+    document.documentElement.toggleAttribute('data-refract', brands.some(function (b) { return b.brand === 'Chromium'; }));
     var m = document.querySelector('meta[name="theme-color"]');
     if (m) m.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--ink-950').trim() || '#120F17');
   }

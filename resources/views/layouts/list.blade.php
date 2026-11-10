@@ -4,6 +4,7 @@
     @include('layouts.partials.head', ['title' => $title ?? null])
 </head>
 <body class="min-h-dvh">
+    <x-glass-defs />
     {{ $slot }}
 
     <x-toast />

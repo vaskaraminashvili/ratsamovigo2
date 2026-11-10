@@ -163,6 +163,81 @@
     box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.18);
 }
 
+/* Dish card: the whole dish section (title, progress, ingredients) sits on one frosted panel, like the header, so it reads as a unit apart from plain items. Rows inside keep their own tint; they cannot blur through the panel. */
+[data-palette='glass'] .glass-card {
+    padding: 0.875rem 0.75rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 1.75rem;
+    background-color: rgba(255, 255, 255, 0.07);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 8px 32px -8px var(--shade);
+}
+
+/* Optics. Pointer specular on every glass bar/menu; --mx/--my are set in app.js. The pill is not positioned by default, so give it a containing block (header is sticky, the menu is absolute). */
+[data-palette='glass'] form.glass-bar {
+    position: relative;
+}
+
+[data-palette='glass'] .glass-bar::after,
+[data-palette='glass'] .glass-menu::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(9rem circle at var(--mx, 30%) var(--my, 0%), rgba(255, 255, 255, 0.14), transparent 65%);
+}
+
+/* Rim light: bright at the grazing corners, cyan and magenta fringe either side, clear in the middle. Pill and menu only; the full-width header keeps its flat edge. */
+[data-palette='glass'] form.glass-bar::before,
+[data-palette='glass'] .glass-menu::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(125, 211, 252, 0.35) 18%, transparent 40%, transparent 60%, rgba(244, 114, 182, 0.35) 82%, rgba(255, 255, 255, 0.55));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* Refraction (Chromium only, flagged by data-refract in the theme boot script): the backdrop is blurred, then warped per colour channel by the #rw-refract SVG filter. */
+[data-palette='glass'][data-refract] form.glass-bar {
+    -webkit-backdrop-filter: blur(18px) url(#rw-refract) saturate(180%);
+    backdrop-filter: blur(18px) url(#rw-refract) saturate(180%);
+}
+
+/* The placeholder sits on a refracted, pink-tinted backdrop where ink-500 measured about 4.2:1; ink-300 is about 6:1. */
+[data-palette='glass'] .glass-bar input::placeholder {
+    color: var(--ink-300);
+}
+
+/* Empty-draft "+" would otherwise be a flat grey disc, weaker than the rim around it. Tint it with the accent; the filled state keeps bg-primary-400. */
+[data-palette='glass'] .glass-add:disabled {
+    background-color: rgba(125, 211, 252, 0.16);
+    color: var(--p300);
+    box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.4);
+}
+
+/* A backdrop-filter on the dock itself would hide the list from the pill inside it, so the dock blurs through a pseudo-element behind the pill instead. */
+[data-palette='glass'][data-refract] .glass-dock {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+[data-palette='glass'][data-refract] .glass-dock::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+}
+
 /* Unlayered on purpose: page colour must beat any reset stylesheet. */
 html,
 body {

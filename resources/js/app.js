@@ -323,6 +323,22 @@ if ('serviceWorker' in navigator) {
 }
 
 /**
+ * Glass theme: a specular highlight follows the pointer across glass surfaces.
+ * CSS reads --mx/--my; nothing happens outside the glass palette.
+ */
+document.addEventListener('pointermove', (event) => {
+    const glass = event.target?.closest?.('.glass-bar, .glass-menu');
+
+    if (!glass || document.documentElement.dataset.palette !== 'glass') {
+        return;
+    }
+
+    const rect = glass.getBoundingClientRect();
+    glass.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+    glass.style.setProperty('--my', `${event.clientY - rect.top}px`);
+}, { passive: true });
+
+/**
  * wire:navigate swaps the <html> element's attributes, which drops the palette.
  * Re-apply the saved theme after every navigation.
  */
