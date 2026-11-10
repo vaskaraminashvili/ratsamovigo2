@@ -168,11 +168,58 @@
     padding: 0.875rem 0.75rem 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 1.75rem;
-    background-color: rgba(255, 255, 255, 0.07);
+    background-color: rgba(255, 0, 0, 0.02);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     backdrop-filter: blur(28px) saturate(180%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 8px 32px -8px var(--shade);
+    --glow: 125, 211, 252;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.06), inset 0 0 28px -12px rgba(var(--glow), 0.37), 0 8px 32px -8px var(--shade), 0 0 26px -6px rgba(var(--glow), 0.47);
+    position: relative;
 }
+
+/* A bright arc in the glow colour travels around the border. --spin is animated through @property; the sharp ring is ::before and a blurred copy of it, ::after, makes the halo. */
+@property --spin {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+[data-palette='glass'] .glass-card::before,
+[data-palette='glass'] .glass-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(from calc(var(--spin) + var(--spin-start, 0deg)), transparent 0 62%, rgba(var(--glow), 0.95) 82%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    animation: glass-spin var(--spin-dur, 8s) linear infinite;
+}
+
+[data-palette='glass'] .glass-card::after {
+    filter: blur(8px);
+    opacity: 0.8;
+}
+
+@keyframes glass-spin {
+    to { --spin: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-palette='glass'] .glass-card::before,
+    [data-palette='glass'] .glass-card::after {
+        animation: none;
+    }
+}
+
+/* Glow colour per dish: the index is crc32(dish name) % 6 from the server, so it looks random but never changes on refresh. */
+[data-palette='glass'] .glass-card[data-glow='1'] { --glow: 244, 114, 182; }
+[data-palette='glass'] .glass-card[data-glow='2'] { --glow: 167, 139, 250; }
+[data-palette='glass'] .glass-card[data-glow='3'] { --glow: 110, 231, 183; }
+[data-palette='glass'] .glass-card[data-glow='4'] { --glow: 251, 191, 36; }
+[data-palette='glass'] .glass-card[data-glow='5'] { --glow: 251, 113, 133; }
 
 /* Optics. Pointer specular on every glass bar/menu; --mx/--my are set in app.js. The pill is not positioned by default, so give it a containing block (header is sticky, the menu is absolute). */
 [data-palette='glass'] form.glass-bar {
