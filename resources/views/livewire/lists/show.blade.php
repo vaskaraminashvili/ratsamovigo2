@@ -6,7 +6,7 @@
     $icon = fn (string $d) => '<svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="'.$d.'"/></svg>';
 @endphp
 
-<div class="mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price && $ownerPro ? '1' : '0' }}" @click.outside="addMenu = false">
+<div class="night-frost mx-auto max-w-md pb-44" wire:poll.visible.5s x-data="listPage({ units: @js($units) })" data-fetch-price="{{ $shoppingList->fetch_best_price && $ownerPro ? '1' : '0' }}" @click.outside="addMenu = false">
     <header class="glass-bar sticky top-0 z-20 bg-ink-950/85 px-3 pb-3 pt-[calc(max(.75rem,env(safe-area-inset-top))+10px)] backdrop-blur">
         <div class="flex items-center gap-1">
             <a href="{{ route('lists.index') }}" wire:navigate class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="ჩემს სიებზე დაბრუნება">
@@ -180,7 +180,7 @@
                 $groupTotal = $groupItems->count();
                 $groupComplete = $groupDone === $groupTotal;
             @endphp
-            <section class="glass-card mt-7" data-glow="{{ crc32($groupName) % 6 }}" style="--spin-start: {{ intdiv($spinHash, 8) % 360 }}deg; --spin-dur: {{ 7 + $spinHash % 4 }}s" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
+            <section class="dish-card glass-card mt-7" data-glow="{{ crc32($groupName) % 6 }}" style="--spin-start: {{ intdiv($spinHash, 8) % 360 }}deg; --spin-dur: {{ 7 + $spinHash % 4 }}s" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
                 <div class="flex items-center gap-2">
                     <h2 class="min-w-0 flex-1 truncate text-[17px] font-bold">{{ $groupName }}</h2>
                     <span class="shrink-0 text-[13px] tabular-nums text-ink-400">{{ $groupDone }}/{{ $groupTotal }}</span>
@@ -288,7 +288,7 @@
             </button>
         </div>
 
-        <div x-show="draft.name.trim()" x-cloak x-transition.opacity class="mb-2 rounded-3xl border border-ink-700 bg-ink-850 p-3 shadow-[0_20px_40px_-15px_var(--shade)]">
+        <div x-show="draft.name.trim()" x-cloak x-transition.opacity class="night-pop mb-2 rounded-3xl border border-ink-700 bg-ink-850 p-3 shadow-[0_20px_40px_-15px_var(--shade)]">
             <x-qty-picker target="draft" />
 
             <div class="mt-3 grid grid-cols-3 gap-2" role="group" aria-label="პრიორიტეტი">
