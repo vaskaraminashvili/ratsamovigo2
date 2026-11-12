@@ -2,6 +2,7 @@
     $multiMember = $members->count() > 1;
     $grouped = $shoppingList->group_by_priority && $ownerPro;
     $leftCount = $openItems->count() + $dishLeft;
+    $boughtCount = $boughtItems->count() + $doneDishGroups->sum(fn ($groupItems) => $groupItems->count());
     $urgentCount = $openItems->where('priority', \App\Enums\Priority::Urgent)->count();
     $icon = fn (string $d) => '<svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="'.$d.'"/></svg>';
 @endphp
@@ -24,7 +25,7 @@
                 </span>
             </button>
             @if ($isOwner)
-                <button type="button" @click="openSettings(@js($shoppingList->name), @js($grouped), @js($shoppingList->bought_behavior->value), @js($shoppingList->fetch_best_price))"
+                <button type="button" @click="openSettings(@js($shoppingList->name), @js($grouped), @js($shoppingList->bought_behavior->value), @js($shoppingList->fetch_best_price), @js($shoppingList->dish_check))"
                         class="grid size-11 shrink-0 place-items-center rounded-full text-ink-300 hover:bg-ink-800" aria-label="სიის პარამეტრები">
                     <svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/></svg>
                 </button>
@@ -174,38 +175,12 @@
 
         {{-- Dishes --}}
         @foreach ($dishGroups as $groupName => $groupItems)
-            @php
-                $spinHash = crc32($groupName.'spin');
-                $groupDone = $groupItems->filter->isBought()->count();
-                $groupTotal = $groupItems->count();
-                $groupComplete = $groupDone === $groupTotal;
-            @endphp
-            <section class="dish-card glass-card mt-7" data-glow="{{ crc32($groupName) % 6 }}" style="--spin-start: {{ intdiv($spinHash, 8) % 360 }}deg; --spin-dur: {{ 7 + $spinHash % 4 }}s" wire:key="dish-{{ md5($groupName) }}" aria-label="{{ $groupName }}">
-                <div class="flex items-center gap-2">
-                    <h2 class="min-w-0 flex-1 truncate text-[17px] font-bold">{{ $groupName }}</h2>
-                    <span class="shrink-0 text-[13px] tabular-nums text-ink-400">{{ $groupDone }}/{{ $groupTotal }}</span>
-                    <button type="button" wire:click="toggleGroup(@js($groupName))" class="shrink-0 rounded-full border border-ink-700 px-3 py-2.5 text-[13px] font-medium text-ink-200 hover:border-ink-500">
-                        {{ $groupComplete ? 'მოხსნა' : 'ყველა ნაყიდია' }}
-                    </button>
-                    <button type="button" wire:click="deleteGroup(@js($groupName))" wire:confirm="წაიშალოს „{{ $groupName }}“ სიიდან?"
-                            class="grid size-9 shrink-0 place-items-center rounded-full text-ink-400 hover:bg-ink-800 hover:text-urgent-fg" aria-label="{{ $groupName }} სიიდან წაშლა">
-                        {!! $icon('M6 18 18 6M6 6l12 12') !!}
-                    </button>
-                </div>
-                <div class="mt-2 h-1 overflow-hidden rounded-full bg-ink-800" role="progressbar" aria-valuenow="{{ $groupDone }}" aria-valuemin="0" aria-valuemax="{{ $groupTotal }}">
-                    <div class="h-full rounded-full bg-cart-400" style="width: {{ $groupTotal > 0 ? round($groupDone / $groupTotal * 100) : 0 }}%"></div>
-                </div>
-                <ul class="mt-2.5 space-y-1.5">
-                    @foreach ($groupItems as $item)
-                        <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="$multiMember" />
-                    @endforeach
-                </ul>
-            </section>
+            <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :multi-member="$multiMember" :sortable="true" />
         @endforeach
 
         @if ($leftCount === 0 && $dishGroups->isEmpty())
             <div class="mt-10 rounded-3xl border border-dashed border-ink-700 p-6 text-center">
-                @if ($boughtItems->isEmpty())
+                @if ($boughtCount === 0)
                     <p class="text-lg font-semibold">სია ცარიელია</p>
                     <p class="mt-1 text-ink-300">დაამატე პირველი ნივთი ქვემოთ.</p>
                 @else
@@ -216,12 +191,12 @@
         @endif
 
         {{-- Bought items --}}
-        @if ($boughtItems->isNotEmpty())
+        @if ($boughtCount > 0)
             @if ($hideBought)
                 <section class="mt-8 rounded-3xl border border-ink-800 bg-ink-900 p-4">
                     <div class="flex items-center gap-3">
                         <div class="min-w-0 flex-1">
-                            <p class="font-semibold">დამალულია {{ $boughtItems->count() }} ნაყიდი</p>
+                            <p class="font-semibold">დამალულია {{ $boughtCount }} ნაყიდი</p>
                             <p class="text-[13px] leading-snug text-ink-400">„თავიდან“ ყველას სიაში დააბრუნებს შემდეგი საყიდლებისთვის.</p>
                         </div>
                         <button type="button" wire:click="reopenBought" class="flex shrink-0 items-center gap-1.5 rounded-full bg-ink-100 px-4 py-2 text-[14px] font-semibold text-ink-950">თავიდან</button>
@@ -229,16 +204,21 @@
                     <button type="button" @click="showHidden = !showHidden" class="mt-3 flex items-center gap-1 text-[14px] font-medium text-ink-300" :aria-expanded="showHidden.toString()">
                         <span x-text="showHidden ? 'დამალვა' : 'ჩვენება'"></span>
                     </button>
-                    <ul x-show="showHidden" x-cloak class="mt-3 space-y-1.5">
-                        @foreach ($boughtItems as $item)
-                            <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="false" />
+                    <div x-show="showHidden" x-cloak>
+                        <ul class="mt-3 space-y-1.5">
+                            @foreach ($boughtItems as $item)
+                                <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="false" />
+                            @endforeach
+                        </ul>
+                        @foreach ($doneDishGroups as $groupName => $groupItems)
+                            <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :compact="true" />
                         @endforeach
-                    </ul>
+                    </div>
                 </section>
             @else
                 <section class="mt-8 border-t border-ink-800 pt-4">
                     <div class="flex items-center justify-between">
-                        <p class="text-[14px] text-ink-400">ნაყიდია {{ $boughtItems->count() }}</p>
+                        <p class="text-[14px] text-ink-400">ნაყიდია {{ $boughtCount }}</p>
                         <button type="button" wire:click="clearBought" wire:confirm="წაიშალოს ყველა ნაყიდი ნივთი?" class="rounded-full px-3 py-2 text-[14px] font-medium text-ink-300 hover:bg-ink-800">გასუფთავება</button>
                     </div>
                     <ul class="mt-3 space-y-1.5">
@@ -246,6 +226,9 @@
                             <x-list-item :saved-keys="$savedKeys" :item="$item" :multi-member="false" />
                         @endforeach
                     </ul>
+                    @foreach ($doneDishGroups as $groupName => $groupItems)
+                        <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :compact="true" />
+                    @endforeach
                 </section>
             @endif
         @endif
@@ -445,7 +428,48 @@
     <x-sheet name="dish" label="კერძის დამატება">
         <h2 class="mt-5 text-2xl font-bold">კერძი</h2>
         <p class="mt-2 text-ink-300">ინგრედიენტები ერთად დაჯგუფდება სიაში.</p>
-        <form x-data="dishForm({ units })" class="mt-5"
+
+        @if ($dishCheck)
+            <div class="mt-4 grid grid-cols-2 rounded-full border border-ink-700 p-1 text-[15px] font-semibold" role="tablist">
+                <button type="button" role="tab" @click="dishTab = 'manual'" :aria-selected="(dishTab === 'manual').toString()" class="rounded-full px-3 py-2 transition" :class="dishTab === 'manual' ? 'bg-primary-400 text-on' : 'text-ink-300'">ხელით</button>
+                <button type="button" role="tab" @click="dishTab = 'recipes'" :aria-selected="(dishTab === 'recipes').toString()" class="rounded-full px-3 py-2 transition" :class="dishTab === 'recipes' ? 'bg-primary-400 text-on' : 'text-ink-300'">რეცეპტები</button>
+            </div>
+
+            <div x-show="dishTab === 'recipes'" x-cloak>
+                <label for="recipe-search" class="sr-only">რეცეპტის ძებნა</label>
+                <input id="recipe-search" type="search" class="field mt-4" placeholder="მოძებნე რეცეპტი" autocomplete="off" x-model="recipes.q" @input.debounce.300ms="searchRecipes()">
+
+                <p x-show="recipes.q.trim().length < 2" class="mt-3 text-ink-300">ჩაწერე კერძის სახელი, მაგ. „ლობიო“.</p>
+                <p x-show="recipes.q.trim().length >= 2 && !recipes.loading && recipes.results.length === 0" x-cloak class="mt-3 text-ink-300">რეცეპტი ვერ მოიძებნა.</p>
+
+                <ul class="mt-3 space-y-2">
+                    <template x-for="recipe in recipes.results" :key="recipe.id">
+                        <li class="rounded-2xl border border-ink-700">
+                            <button type="button" @click="openRecipe(recipe.id)" class="flex min-h-11 w-full items-center gap-3 px-3.5 py-3 text-left" :aria-expanded="(recipes.open === recipe.id).toString()">
+                                <span class="min-w-0 flex-1 font-semibold" x-text="recipe.title"></span>
+                            </button>
+                            <ul x-show="recipes.open === recipe.id" x-cloak class="space-y-1 border-t border-ink-800 px-3.5 py-2">
+                                <template x-for="(line, i) in recipes.lines" :key="i">
+                                    <li>
+                                        <label class="flex cursor-pointer items-center gap-3 py-1.5">
+                                            <input type="checkbox" class="size-5 shrink-0 rounded-md border-ink-600 bg-ink-900 accent-primary-400" :checked="recipes.pick.includes(i)" @change="toggleRecipePick(i)">
+                                            <span class="min-w-0 flex-1" x-text="line.label"></span>
+                                            <span x-show="line.onList" class="shrink-0 rounded-md bg-ink-800 px-1.5 py-0.5 text-[13px] text-ink-300">სიაშია</span>
+                                        </label>
+                                    </li>
+                                </template>
+                            </ul>
+                        </li>
+                    </template>
+                </ul>
+
+                <button type="button" x-show="recipes.open !== null" x-cloak @click="addRecipePicked()" :disabled="recipes.pick.length === 0" class="btn-primary mt-5 w-full disabled:opacity-40">
+                    სიაში დამატება<span x-show="recipes.pick.length" x-text="' (' + recipes.pick.length + ')'"></span>
+                </button>
+            </div>
+        @endif
+
+        <form x-data="dishForm({ units })" class="mt-5" @if ($dishCheck) x-show="dishTab === 'manual'" @endif
               @submit.prevent="if (!ready) return; const n = name.trim(), p = payload(), r = remember; sheet = null; clear(); $wire.addDish(n, p, r)">
             <x-dish-form :remember="true" :locked="! $isPro">
                 @error('ingredients') <p class="field-error">{{ $message }}</p> @enderror
@@ -466,11 +490,14 @@
             @if ($dishes->isEmpty())
                 <p class="mt-4 text-ink-300">შენახული კერძი ჯერ არ გაქვს. „კერძი“ მენიუში ჩართე დამახსოვრება ან დაამატე პროფილში.</p>
             @else
+                @php
+                    $isOnList = fn (string $name): bool => $dishCheck && collect($listNames)->contains(fn (string $listed) => \App\Support\RecipeIngredient::matches($listed, $name));
+                @endphp
                 <ul class="mt-4 space-y-2">
                     @foreach ($dishes as $dish)
                         <li wire:key="dish-pick-{{ $dish->id }}" class="rounded-2xl border border-ink-700">
-                            <button type="button" @click="showDish({{ $dish->id }}, @js($dish->ingredients->pluck('id')->all()))" class="flex w-full items-center gap-3 px-3.5 py-3 text-left" :aria-expanded="(openDish === {{ $dish->id }}).toString()">
-                                <span class="min-w-0 flex-1 truncate font-semibold">{{ $dish->name }}</span>
+                            <button type="button" @click="showDish({{ $dish->id }}, @js($dish->ingredients->reject(fn ($ingredient) => $isOnList($ingredient->name))->pluck('id')->values()->all()))" class="flex w-full items-center gap-3 px-3.5 py-3 text-left" :aria-expanded="(openDish === {{ $dish->id }}).toString()">
+                                <span class="min-w-0 flex-1 break-words font-semibold leading-snug">{{ $dish->name }}</span>
                                 <span class="shrink-0 text-[13px] text-ink-400">{{ \App\Support\Ka::ingredients($dish->ingredients->count()) }}</span>
                             </button>
                             <ul x-show="openDish === {{ $dish->id }}" x-cloak class="space-y-1 border-t border-ink-800 px-3.5 py-2">
@@ -479,6 +506,9 @@
                                         <label class="flex cursor-pointer items-center gap-3 py-1.5">
                                             <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" :checked="dishPick.includes({{ $ingredient->id }})" @change="toggleDishPick({{ $ingredient->id }})">
                                             <span class="min-w-0 flex-1 truncate">{{ $ingredient->name }}</span>
+                                            @if ($isOnList($ingredient->name))
+                                                <span class="shrink-0 rounded-md bg-ink-800 px-1.5 py-0.5 text-[13px] text-ink-300">სიაშია</span>
+                                            @endif
                                             @if ($ingredient->quantity !== null)
                                                 <span class="shrink-0 rounded-md bg-ink-800 px-1.5 py-0.5 text-[13px] font-semibold tabular-nums">{{ str_replace('.', ',', (string) $ingredient->quantity) }} {{ $ingredient->unit }}</span>
                                             @endif
@@ -623,6 +653,14 @@
                     <span>
                         <span class="block font-semibold"><span @class(['line-through opacity-60' => ! $isPro])>საუკეთესო ფასის ძებნა</span> @unless ($isPro) <x-pro-badge /> @endunless</span>
                         <span class="block text-[13px] text-ink-400">ნივთის სახელის აკრეფისას მაღაზიების ფასებს შემოგთავაზებს.</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-3 rounded-2xl border border-ink-700 p-3.5" @unless ($isPro) @click="$dispatch('toast', { message: @js(\App\Support\ProLimits::LOCKED_MESSAGE) })" @endunless>
+                    <input type="checkbox" class="size-5 rounded-md border-ink-600 bg-ink-900 accent-primary-400" x-model="settings.dishCheck" @disabled(! $isPro)>
+                    <span>
+                        <span class="block font-semibold"><span @class(['line-through opacity-60' => ! $isPro])>კერძის შემოწმება</span> @unless ($isPro) <x-pro-badge /> @endunless</span>
+                        <span class="block text-[13px] text-ink-400">რეცეპტის ინგრედიენტებში ჩანს, რა გაქვს უკვე სიაში.</span>
                     </span>
                 </label>
 
