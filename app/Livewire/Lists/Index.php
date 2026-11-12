@@ -6,19 +6,25 @@ use App\Enums\BoughtBehavior;
 use App\Enums\Priority;
 use App\Enums\Unit;
 use App\Models\ListItem;
-use App\Models\SavedItem;
 use App\Models\ShoppingList;
 use App\Support\ProLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts::app')]
 #[Title('ჩემი სიები')]
+#[Lazy]
 class Index extends Component
 {
+    public function placeholder(): View
+    {
+        return view('livewire.lists.index-skeleton');
+    }
+
     public string $name = '';
 
     public string $boughtBehavior = 'strike';
@@ -136,7 +142,7 @@ class Index extends Component
             'lists' => $lists,
             'isPro' => $user->isPro(),
             'urgentTotal' => (int) $lists->sum('urgent_count'),
-            'pinned' => SavedItem::query()->where('user_id', $user->id)->orderBy('name')->limit(60)->get(),
+            'pinned' => $user->cachedSavedItems()->take(60),
             'greeting' => match (true) {
                 now()->hour < 12 => 'დილა მშვიდობისა',
                 now()->hour < 18 => 'დღე მშვიდობისა',

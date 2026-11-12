@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:3,1')->name('verification.send');
     Route::post('/logout', LogoutController::class)->name('logout');
     Route::get('/lists', ListsIndex::class)->name('lists.index');
-    Route::get('/lists/{shoppingList}', ListsShow::class)->name('lists.show');
+    // The page loads lazily, so access is checked here to keep the 403 on the first request.
+    Route::get('/lists/{shoppingList}', ListsShow::class)->middleware('can:view,shoppingList')->name('lists.show');
     Route::get('/settings/profile', Profile::class)->name('settings.profile');
 });

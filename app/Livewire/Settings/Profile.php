@@ -220,6 +220,7 @@ class Profile extends Component
             'quantity' => $row['quantity'],
             'unit' => $row['quantity'] === null ? null : $row['unit'],
         ], $rows));
+        User::forgetCatalogCache($dish->user_id);
 
         $this->dispatch('dish-saved');
     }
@@ -227,6 +228,7 @@ class Profile extends Component
     public function deleteDish(int $dishId): void
     {
         auth()->user()->dishes()->whereKey($dishId)->delete();
+        User::forgetCatalogCache(auth()->id());
     }
 
     public function editSaved(int $savedItemId): void
@@ -257,6 +259,7 @@ class Profile extends Component
         }
 
         auth()->user()->savedItems()->whereKey($savedItemId)->delete();
+        User::forgetCatalogCache(auth()->id());
     }
 
     public function deleteAccount(): void
@@ -300,8 +303,8 @@ class Profile extends Component
     public function render(): View
     {
         return view('livewire.settings.profile', [
-            'savedItems' => auth()->user()->savedItems()->orderBy('name')->get(),
-            'dishes' => auth()->user()->dishes()->with('ingredients')->orderBy('name')->get(),
+            'savedItems' => auth()->user()->cachedSavedItems(),
+            'dishes' => auth()->user()->cachedDishes(),
             'units' => Unit::options(),
             'isPro' => auth()->user()->isPro(),
             'themes' => [

@@ -24,12 +24,14 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts::list')]
+#[Lazy]
 class Show extends Component
 {
     use ThrottlesActions;
@@ -39,6 +41,11 @@ class Show extends Component
     public ShoppingList $shoppingList;
 
     public ?TemporaryUploadedFile $cover = null;
+
+    public function placeholder(): View
+    {
+        return view('livewire.lists.show-skeleton');
+    }
 
     public function updatedCover(): void
     {
@@ -206,6 +213,7 @@ class Show extends Component
                 'quantity' => $row['quantity'],
                 'unit' => $row['quantity'] === null ? null : $row['unit'],
             ], $rows));
+            User::forgetCatalogCache($dish->user_id);
         }
 
         $this->dispatch('toast', message: "„{$dishName}“ დაემატა");
@@ -446,6 +454,7 @@ class Show extends Component
 
         if (! $saved) {
             $user->savedItems()->where('name_key', $key)->delete();
+            User::forgetCatalogCache($user->id);
 
             return;
         }
@@ -675,7 +684,7 @@ class Show extends Component
         $open = $plain->reject->isBought();
         $bought = $plain->filter->isBought()->values();
 
-        $savedItems = auth()->user()->savedItems()->orderBy('name')->get();
+        $savedItems = auth()->user()->cachedSavedItems();
         $polls = $this->shoppingList->polls()->with(['creator', 'options.votes.user'])->latest()->get();
 
         return view('livewire.lists.show', [
@@ -685,7 +694,7 @@ class Show extends Component
             'activity' => ListActivity::events($items, $polls),
             'dishGroups' => $dishGroups,
             'dishLeft' => $dishGroups->flatten()->reject->isBought()->count(),
-            'dishes' => auth()->user()->dishes()->with('ingredients')->orderBy('name')->get(),
+            'dishes' => auth()->user()->cachedDishes(),
             'savedItems' => $savedItems,
             'ownerPro' => $ownerPro,
             'isPro' => auth()->user()->isPro(),

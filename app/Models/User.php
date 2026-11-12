@@ -7,12 +7,14 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -89,6 +91,51 @@ class User extends Authenticatable implements MustVerifyEmail
     public function dishes(): HasMany
     {
         return $this->hasMany(Dish::class);
+    }
+
+    /**
+     * Saved items, cached until the user's saved items or dishes change.
+     * Only raw attribute arrays are cached: cache.serializable_classes forbids storing models.
+     *
+     * @return Collection<int, SavedItem>
+     */
+    public function cachedSavedItems(): Collection
+    {
+        $rows = Cache::rememberForever(
+            "user:{$this->id}:saved-items",
+            fn () => $this->savedItems()->orderBy('name')->get()->map->getAttributes()->all(),
+        );
+
+        return SavedItem::hydrate($rows);
+    }
+
+    /**
+     * Dishes with ingredients, cached until the user's dishes change.
+     *
+     * @return Collection<int, Dish>
+     */
+    public function cachedDishes(): Collection
+    {
+        $rows = Cache::rememberForever(
+            "user:{$this->id}:dishes",
+            fn () => $this->dishes()->with('ingredients')->orderBy('name')->get()->map(fn (Dish $dish) => [
+                'attributes' => $dish->getAttributes(),
+                'ingredients' => $dish->ingredients->map->getAttributes()->all(),
+            ])->all(),
+        );
+
+        return Dish::hydrate(array_column($rows, 'attributes'))
+            ->each(fn (Dish $dish, int $index) => $dish->setRelation('ingredients', DishIngredient::hydrate($rows[$index]['ingredients'])));
+    }
+
+    public static function forgetCatalogCache(?int $userId): void
+    {
+        if ($userId === null) {
+            return;
+        }
+
+        Cache::forget("user:{$userId}:saved-items");
+        Cache::forget("user:{$userId}:dishes");
     }
 
     /**

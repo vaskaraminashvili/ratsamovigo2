@@ -515,6 +515,24 @@ html {
 }
 
 /* Landing page: the one orchestrated moment. The call fades, the list fills itself in. */
+/* Placeholder shapes shown while a lazy page loads. Palette variables only, so every theme works. */
+.skeleton {
+    background-color: color-mix(in oklab, var(--ink-700) 65%, transparent);
+    background-image: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--ink-500) 22%, transparent) 50%, transparent 70%);
+    background-repeat: no-repeat;
+    background-size: 250% 100%;
+    animation: skeleton-sheen 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-sheen {
+    from { background-position: 130% 0; }
+    to { background-position: -130% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton { animation: none; }
+}
+
 @keyframes pop {
     from { opacity: 0; transform: translateY(8px) scale(0.98); }
     to { opacity: 1; transform: none; }
