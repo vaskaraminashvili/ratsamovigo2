@@ -24,11 +24,12 @@ use Illuminate\Support\Str;
  * @property BoughtBehavior $bought_behavior
  * @property bool $group_by_priority
  * @property bool $fetch_best_price
+ * @property bool $dish_check
  * @property string $invite_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['owner_id', 'name', 'bought_behavior', 'group_by_priority', 'fetch_best_price', 'invite_token', 'shopping_by', 'shopping_started_at', 'cover_path'])]
+#[Fillable(['owner_id', 'name', 'bought_behavior', 'group_by_priority', 'fetch_best_price', 'dish_check', 'invite_token', 'shopping_by', 'shopping_started_at', 'cover_path'])]
 class ShoppingList extends Model
 {
     /** @use HasFactory<ShoppingListFactory> */
@@ -54,6 +55,7 @@ class ShoppingList extends Model
             'bought_behavior' => BoughtBehavior::class,
             'group_by_priority' => 'boolean',
             'fetch_best_price' => 'boolean',
+            'dish_check' => 'boolean',
             'shopping_started_at' => 'datetime',
         ];
     }

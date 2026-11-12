@@ -9,6 +9,7 @@ use App\Livewire\Concerns\ThrottlesActions;
 use App\Livewire\Concerns\ValidatesIngredients;
 use App\Models\ListItem;
 use App\Models\PollVote;
+use App\Models\Recipe;
 use App\Models\SavedItem;
 use App\Models\ShoppingList;
 use App\Models\User;
@@ -17,6 +18,7 @@ use App\Support\CoverImage;
 use App\Support\ListActivity;
 use App\Support\ProductSearch;
 use App\Support\ProLimits;
+use App\Support\RecipeIngredient;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
@@ -232,6 +234,92 @@ class Show extends Component
         if ($ingredients->isNotEmpty()) {
             $this->dispatch('toast', message: "„{$dish->name}“ დაემატა");
         }
+    }
+
+    /**
+     * Recipe catalog search for the dish check. Empty unless the list has "dish check" turned on.
+     *
+     * @return list<array{id: int, title: string}>
+     */
+    #[Renderless]
+    public function searchRecipes(string $query): array
+    {
+        Gate::authorize('view', $this->shoppingList);
+
+        $query = trim($query);
+
+        if (! $this->dishCheckEnabled() || mb_strlen($query) < 2) {
+            return [];
+        }
+
+        $this->throttle('search-recipes', 60);
+
+        return Recipe::query()
+            ->where('title', 'like', '%'.addcslashes($query, '%_\\').'%')
+            ->orderBy('title')
+            ->limit(8)
+            ->get(['id', 'title'])
+            ->map(fn (Recipe $recipe) => ['id' => $recipe->id, 'title' => $recipe->title])
+            ->all();
+    }
+
+    /**
+     * The recipe's ingredients, each flagged when something similar is already on this list.
+     *
+     * @return list<array{label: string, onList: bool}>
+     */
+    #[Renderless]
+    public function recipeLines(int $recipeId): array
+    {
+        Gate::authorize('view', $this->shoppingList);
+
+        if (! $this->dishCheckEnabled()) {
+            return [];
+        }
+
+        $this->throttle('search-recipes', 60);
+
+        $names = $this->shoppingList->items()->whereNull('bought_at')->pluck('name');
+
+        return array_map(fn (array $line) => [
+            'label' => $line['label'],
+            'onList' => $names->contains(fn (string $name) => RecipeIngredient::matches($name, $line['name'])),
+        ], Recipe::findOrFail($recipeId)->ingredientLines());
+    }
+
+    /**
+     * @param  list<int|string>  $indexes  Positions of the ticked lines in the recipe's ingredient list.
+     */
+    public function addRecipeLines(int $recipeId, array $indexes): void
+    {
+        Gate::authorize('view', $this->shoppingList);
+
+        abort_unless($this->dishCheckEnabled(), 403);
+
+        $this->throttle('add-dish', 20);
+
+        $recipe = Recipe::findOrFail($recipeId);
+        $lines = $recipe->ingredientLines();
+        $added = 0;
+
+        foreach (array_unique(array_map('intval', $indexes)) as $index) {
+            if (! isset($lines[$index]) || $lines[$index]['name'] === '') {
+                continue;
+            }
+
+            $line = $lines[$index];
+            $this->createDishItem(mb_substr($recipe->title, 0, 120), $line['name'], $line['quantity'], $line['unit'] ?? Unit::Piece->value);
+            $added++;
+        }
+
+        if ($added > 0) {
+            $this->dispatch('toast', message: "„{$recipe->title}“ დაემატა");
+        }
+    }
+
+    protected function dishCheckEnabled(): bool
+    {
+        return $this->shoppingList->fresh()->dish_check && $this->shoppingList->owner->isPro();
     }
 
     /**
@@ -493,6 +581,33 @@ class Show extends Component
         }
     }
 
+    /**
+     * Drop a dish ingredient at a place inside its own dish.
+     */
+    public function sortDishItem(int $itemId, int $position): void
+    {
+        Gate::authorize('view', $this->shoppingList);
+
+        $item = $this->shoppingList->items()->whereNotNull('group_name')->findOrFail($itemId);
+
+        $ids = $this->shoppingList->items()
+            ->where('group_name', $item->group_name)
+            ->whereKeyNot($itemId)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get()
+            ->sortBy(fn (ListItem $sibling) => $sibling->position ?? PHP_INT_MAX)
+            ->pluck('id')
+            ->values()
+            ->all();
+
+        array_splice($ids, max(0, min($position, count($ids))), 0, [$itemId]);
+
+        foreach ($ids as $index => $id) {
+            $this->shoppingList->items()->whereKey($id)->update(['position' => $index + 1]);
+        }
+    }
+
     public function toggleBought(int $itemId): void
     {
         Gate::authorize('view', $this->shoppingList);
@@ -550,7 +665,7 @@ class Show extends Component
         $this->dispatch('toast', message: 'ნივთები სიაში დაბრუნდა');
     }
 
-    public function saveSettings(string $name, bool $groupByPriority, string $boughtBehavior, ?bool $fetchBestPrice = null): void
+    public function saveSettings(string $name, bool $groupByPriority, string $boughtBehavior, ?bool $fetchBestPrice = null, ?bool $dishCheck = null): void
     {
         Gate::authorize('update', $this->shoppingList);
 
@@ -570,6 +685,7 @@ class Show extends Component
             'bought_behavior' => $pro ? $validated['boughtBehavior'] : $this->shoppingList->bought_behavior,
             'group_by_priority' => $pro ? $groupByPriority : $this->shoppingList->group_by_priority,
             'fetch_best_price' => $pro ? ($fetchBestPrice ?? $this->shoppingList->fetch_best_price) : $this->shoppingList->fetch_best_price,
+            'dish_check' => $pro ? ($dishCheck ?? $this->shoppingList->dish_check) : $this->shoppingList->dish_check,
         ]);
 
         $this->dispatch('toast', message: 'პარამეტრები შენახულია');
@@ -669,7 +785,11 @@ class Show extends Component
         $ownerPro = $this->shoppingList->owner->isPro();
         $hide = $ownerPro && $this->shoppingList->bought_behavior === BoughtBehavior::Hide;
 
-        $dishGroups = $items->filter(fn (ListItem $item) => $item->group_name !== null)->groupBy('group_name');
+        $allDishGroups = $items->filter(fn (ListItem $item) => $item->group_name !== null)
+            ->groupBy('group_name')
+            ->map(fn ($group) => $group->sortBy(fn (ListItem $item) => $item->position ?? PHP_INT_MAX)->values());
+        $doneDishGroups = $allDishGroups->filter(fn ($group) => $group->every->isBought());
+        $dishGroups = $allDishGroups->reject(fn ($group) => $group->every->isBought());
         $plain = $items->filter(fn (ListItem $item) => $item->group_name === null);
 
         $open = $plain->reject->isBought();
@@ -684,9 +804,12 @@ class Show extends Component
             'polls' => $polls,
             'activity' => ListActivity::events($items, $polls),
             'dishGroups' => $dishGroups,
+            'doneDishGroups' => $doneDishGroups,
             'dishLeft' => $dishGroups->flatten()->reject->isBought()->count(),
             'dishes' => auth()->user()->dishes()->with('ingredients')->orderBy('name')->get(),
             'savedItems' => $savedItems,
+            'dishCheck' => $ownerPro && $this->shoppingList->dish_check,
+            'listNames' => $items->reject->isBought()->pluck('name')->all(),
             'ownerPro' => $ownerPro,
             'isPro' => auth()->user()->isPro(),
             'savedKeys' => $savedItems->pluck('name_key')->all(),

@@ -16,6 +16,7 @@ window.listPage = function ({ units }) {
         showHidden: false,
         pick: [],
         savedTab: 'items',
+        dishTab: 'manual',
         openPoll: null,
         going: { to: [], message: '', remember: false },
         openDish: null,
@@ -23,7 +24,8 @@ window.listPage = function ({ units }) {
         copied: false,
         draft: blank(),
         edit: blank(),
-        settings: { name: '', group: true, behavior: 'strike', fetchPrice: false },
+        settings: { name: '', group: true, behavior: 'strike', fetchPrice: false, dishCheck: false },
+        recipes: { q: '', results: [], open: null, lines: [], pick: [], seq: 0, loading: false },
 
         init() {
             this.$watch('draft.name', (value) => this.onDraftName(value));
@@ -216,16 +218,72 @@ window.listPage = function ({ units }) {
             await this.$wire.deleteItem(id);
         },
 
-        openSettings(name, group, behavior, fetchPrice) {
-            this.settings = { name, group, behavior, fetchPrice };
+        openSettings(name, group, behavior, fetchPrice, dishCheck) {
+            this.settings = { name, group, behavior, fetchPrice, dishCheck };
             this.sheet = 'settings';
         },
 
         async saveSettings() {
-            const { name, group, behavior, fetchPrice } = this.settings;
+            const { name, group, behavior, fetchPrice, dishCheck } = this.settings;
             this.sheet = null;
 
-            await this.$wire.saveSettings(name, group, behavior, fetchPrice);
+            await this.$wire.saveSettings(name, group, behavior, fetchPrice, dishCheck);
+        },
+
+        async searchRecipes() {
+            const seq = ++this.recipes.seq;
+            this.recipes.open = null;
+            this.recipes.loading = true;
+
+            try {
+                const rows = await this.$wire.searchRecipes(this.recipes.q);
+
+                if (seq === this.recipes.seq) {
+                    this.recipes.results = Array.isArray(rows) ? rows : [];
+                }
+            } catch (e) {
+                if (seq === this.recipes.seq) {
+                    this.recipes.results = [];
+                }
+            } finally {
+                if (seq === this.recipes.seq) {
+                    this.recipes.loading = false;
+                }
+            }
+        },
+
+        /**
+         * Opens a recipe and ticks every ingredient that is not on the list yet.
+         */
+        async openRecipe(id) {
+            if (this.recipes.open === id) {
+                this.recipes.open = null;
+
+                return;
+            }
+
+            this.recipes.open = id;
+            this.recipes.lines = [];
+            this.recipes.pick = [];
+
+            const lines = await this.$wire.recipeLines(id);
+
+            if (this.recipes.open === id) {
+                this.recipes.lines = lines;
+                this.recipes.pick = lines.flatMap((line, i) => (line.onList ? [] : [i]));
+            }
+        },
+
+        toggleRecipePick(i) {
+            this.recipes.pick = this.recipes.pick.includes(i) ? this.recipes.pick.filter((p) => p !== i) : [...this.recipes.pick, i];
+        },
+
+        async addRecipePicked() {
+            const { open, pick } = this.recipes;
+            this.recipes = { q: '', results: [], open: null, lines: [], pick: [], seq: this.recipes.seq + 1, loading: false };
+            this.sheet = null;
+
+            await this.$wire.addRecipeLines(open, pick);
         },
 
         async copyInvite(url) {
