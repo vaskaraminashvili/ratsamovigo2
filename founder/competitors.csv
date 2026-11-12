@@ -1,0 +1,10 @@
+name,type,url,location_or_channel,price_of_comparable_item,what_it_sells,positioning_line,rating,review_count,source_date
+Bring!,direct (generic list app),https://apps.apple.com/us/app/-/id580669177,App Store / Google Play (global),"$8.99/yr or $1.99/mo Premium (US); EUR 9.99/yr (Serbia store)",Shared shopping list + recipes,not captured,"3.4 (JustUseApp, 10 reviews, low confidence); 4.7 (Unstar, internally inconsistent)",340 (Unstar),2026-11
+AnyList,direct (generic list + meal planning),https://www.anylist.com/premium,App Store / Google Play / web,"$9.99/yr individual, $14.99/yr household",Shared lists + recipes + meal planning (Complete),not captured,not captured,not captured,2026-11
+OurGroceries,direct (generic list),https://apps.apple.com/us/app/id325851015,App Store / Google Play,"Remove ads $0.99 / $5.99; lifetime $17.99 (2024 US listing)",Shared grocery list with ads,not captured,not captured,not captured,2024
+Listonic,direct (generic list),https://ie.trustpilot.com/review/listonic.com,App Store / Google Play,price not confirmed,Shared shopping list with ads + Premium,not captured,3.3 (Trustpilot),7,2026-11
+Dazume,direct (Georgia price comparison + list),https://apps.apple.com/ag/app/dazume/id1545565884,App Store (Georgia),not captured,Find lowest prices in Georgian supermarkets; save favourites and a shopping list,"helps locate lowest prices in supermarkets and electronics markets nearby in Georgia",not captured,not captured,2026-11
+tarifebi.ge,indirect (Georgia price comparison),https://mwm.ai/apps/tarifebige/6795153490,App Store (Georgia),not captured,Cheapest seller across groceries/pharmacies/electronics; AI price assistant,not captured,not captured,not captured,2026-11
+Tetri,indirect (Georgia discounts),https://mwm.ai/apps/tetri-sales/6739466617,App Store (Georgia),not captured,Collects discounts across Georgian stores,not captured,not captured,not captured,2026-11
+Viber/WhatsApp/Messenger family chat,substitute,,Existing chats,free,Typed lists in a group chat,,,,uncited
+Google Keep / Notes / paper,substitute,,Pre-installed,free,Checklist notes,,,,uncited
