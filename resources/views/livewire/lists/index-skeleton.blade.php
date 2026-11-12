@@ -1,4 +1,4 @@
-<div role="status" aria-busy="true">
+<section role="status" aria-busy="true">
     <span class="sr-only">იტვირთება…</span>
     <main class="px-5" aria-hidden="true">
         <section class="pt-4">
@@ -26,4 +26,4 @@
             </ul>
         </section>
     </main>
-</div>
+</section>

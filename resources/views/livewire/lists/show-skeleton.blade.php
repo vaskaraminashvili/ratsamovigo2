@@ -1,4 +1,4 @@
-<div class="mx-auto max-w-md pb-44" role="status" aria-busy="true">
+<section class="mx-auto max-w-md pb-44" role="status" aria-busy="true">
     <span class="sr-only">იტვირთება…</span>
 
     <header class="px-3 pb-3 pt-[calc(max(.75rem,env(safe-area-inset-top))+10px)]" aria-hidden="true">
@@ -28,4 +28,4 @@
     <div class="fixed inset-x-0 bottom-0 mx-auto max-w-md px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3" aria-hidden="true">
         <div class="skeleton h-12 rounded-full"></div>
     </div>
-</div>
+</section>
