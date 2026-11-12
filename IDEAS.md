@@ -6,14 +6,14 @@ Backlog of ideas, not commitments. Effort is a rough guess.
 
 Build these first. They reuse existing models and give Pro users a clear reason to pay.
 
-1. Dish → list in one tap (#1)
-2. Dish ingredient check on add (#13)
+1. ~~Dish → list in one tap (#1)~~
+2. ~~Dish ingredient check on add (#13)~~
 3. Weekly meal planner (#2)
 4. Recurring items (#3)
 
 ## High value, small effort
 
-1. **Dish → list in one tap.** Add all of a dish's ingredients to a list, skipping items already on it. Uses `Dish`, `DishIngredient`, `ListItem`.
+1. ~~**Dish → list in one tap.** Add all of a dish's ingredients to a list, skipping items already on it. Uses `Dish`, `DishIngredient`, `ListItem`.~~
 2. **Weekly meal planner.** Assign dishes to days, then generate one combined shopping list. Good Pro feature.
 3. **Recurring items.** Mark an item weekly or monthly (milk, bread) so it comes back after being bought. `SavedItem` is likely the base.
 4. **Aisle or category sorting.** Group items by store section so people shop in order.
@@ -34,7 +34,7 @@ Build these first. They reuse existing models and give Pro users a clear reason 
 
 ## Added later
 
-13. **Dish ingredient check on add.** When the user adds a dish to a list, show a pop-up with all of the dish's ingredients. Ingredients already on the list are shown as present. The user keeps or removes what they are missing, then confirms, and only the chosen ingredients are added.
+13. ~~**Dish ingredient check on add.** When the user adds a dish to a list, show a pop-up with all of the dish's ingredients. Ingredients already on the list are shown as present. The user keeps or removes what they are missing, then confirms, and only the chosen ingredients are added.~~
     - Example: adding "mushrooms with cheese" lists mushrooms, cheese, butter, garlic. The user already has cheese and garlic, so they untick those and add the rest.
     - Needs: the dish's ingredient list (`Dish` → `DishIngredient`) and the list's current items, so the pop-up can tell which ingredients are already on the list.
     - Overlaps with idea #1. This is the interactive version, so build them together.
