@@ -805,6 +805,11 @@ class Show extends Component
         $bought = $plain->filter->isBought()->values();
 
         $savedItems = auth()->user()->cachedSavedItems();
+        $recipePreps = $ownerPro && $this->shoppingList->dish_check && $allDishGroups->isNotEmpty()
+            ? Recipe::query()->whereIn('title', $allDishGroups->keys())->get(['title', 'preparation'])
+                ->mapWithKeys(fn (Recipe $recipe) => [$recipe->title => array_values($recipe->preparation)])
+                ->filter()
+            : collect();
         $polls = $this->shoppingList->polls()->with(['creator', 'options.votes.user'])->latest()->get();
 
         return view('livewire.lists.show', [
@@ -814,6 +819,7 @@ class Show extends Component
             'activity' => ListActivity::events($items, $polls),
             'dishGroups' => $dishGroups,
             'doneDishGroups' => $doneDishGroups,
+            'recipePreps' => $recipePreps,
             'dishLeft' => $dishGroups->flatten()->reject->isBought()->count(),
             'dishes' => auth()->user()->cachedDishes(),
             'savedItems' => $savedItems,

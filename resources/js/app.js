@@ -20,6 +20,7 @@ window.listPage = function ({ units }) {
         openPoll: null,
         going: { to: [], message: '', remember: false },
         openDish: null,
+        prep: { title: '', steps: [] },
         dishPick: [],
         copied: false,
         draft: blank(),

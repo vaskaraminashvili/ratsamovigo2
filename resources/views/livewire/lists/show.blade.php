@@ -175,7 +175,7 @@
 
         {{-- Dishes --}}
         @foreach ($dishGroups as $groupName => $groupItems)
-            <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :multi-member="$multiMember" :sortable="true" />
+            <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :multi-member="$multiMember" :sortable="true" :prep="$recipePreps[$groupName] ?? []" />
         @endforeach
 
         @if ($leftCount === 0 && $dishGroups->isEmpty())
@@ -211,7 +211,7 @@
                             @endforeach
                         </ul>
                         @foreach ($doneDishGroups as $groupName => $groupItems)
-                            <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :compact="true" />
+                            <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :compact="true" :prep="$recipePreps[$groupName] ?? []" />
                         @endforeach
                     </div>
                 </section>
@@ -227,7 +227,7 @@
                         @endforeach
                     </ul>
                     @foreach ($doneDishGroups as $groupName => $groupItems)
-                        <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :compact="true" />
+                        <x-dish-card :group-name="$groupName" :items="$groupItems" :saved-keys="$savedKeys" :compact="true" :prep="$recipePreps[$groupName] ?? []" />
                     @endforeach
                 </section>
             @endif
@@ -476,6 +476,20 @@
                 <button type="submit" class="btn-primary w-full disabled:opacity-40" :disabled="!ready">სიაში დამატება</button>
             </x-dish-form>
         </form>
+    </x-sheet>
+
+    {{-- Recipe preparation --}}
+    <x-sheet name="prep" label="მომზადება">
+        <h2 class="mt-5 text-2xl font-bold" x-text="prep.title"></h2>
+        <p class="mt-1 text-[14px] text-ink-400">მომზადება</p>
+        <ol class="mt-4 space-y-4 pb-2">
+            <template x-for="(step, i) in prep.steps" :key="i">
+                <li class="flex gap-3">
+                    <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border border-ink-700 text-[13px] tabular-nums text-ink-300" x-text="i + 1"></span>
+                    <p class="min-w-0 flex-1 break-words leading-relaxed text-ink-100" x-text="step"></p>
+                </li>
+            </template>
+        </ol>
     </x-sheet>
 
     {{-- Add from saved --}}

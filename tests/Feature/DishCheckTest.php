@@ -98,3 +98,27 @@ test('a free owner cannot switch dish check on', function () {
 
     expect($list->fresh()->dish_check)->toBeFalse();
 });
+
+test('a dish added from a recipe opens its preparation steps', function () {
+    $owner = User::factory()->create();
+    $list = dishCheckList($owner);
+    Recipe::factory()->create(['title' => 'ლობიო', 'preparation' => ['ლობიო დაალბეთ ღამით.', 'მოხარშეთ რბილად.']]);
+    ListItem::factory()->create(['shopping_list_id' => $list->id, 'added_by' => $owner->id, 'name' => 'ლობიო', 'group_name' => 'ლობიო']);
+    ListItem::factory()->create(['shopping_list_id' => $list->id, 'added_by' => $owner->id, 'name' => 'ხახვი', 'group_name' => 'ხელით კერძი']);
+    $this->actingAs($owner);
+
+    Livewire::test(Show::class, ['shoppingList' => $list])
+        ->assertSee('ლობიო დაალბეთ ღამით.')
+        ->assertSee('მოხარშეთ რბილად.')
+        ->assertViewHas('recipePreps', fn ($preps) => $preps->keys()->all() === ['ლობიო']);
+});
+
+test('preparation steps are not loaded when dish check is off', function () {
+    $owner = User::factory()->create();
+    $list = dishCheckList($owner, false);
+    Recipe::factory()->create(['title' => 'ლობიო', 'preparation' => ['ლობიო დაალბეთ ღამით.']]);
+    ListItem::factory()->create(['shopping_list_id' => $list->id, 'added_by' => $owner->id, 'name' => 'ლობიო', 'group_name' => 'ლობიო']);
+    $this->actingAs($owner);
+
+    Livewire::test(Show::class, ['shoppingList' => $list])->assertDontSee('ლობიო დაალბეთ ღამით.');
+});
