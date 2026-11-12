@@ -4,7 +4,7 @@
  *  - Anything else offline falls back to /offline.html.
  * Livewire updates (POST) and cross-origin requests are never touched.
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const ASSETS = `rw-assets-${VERSION}`;
 const PAGES = `rw-pages-${VERSION}`;
 const OFFLINE_URL = '/offline.html';
