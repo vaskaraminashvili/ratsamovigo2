@@ -11,13 +11,20 @@ use App\Support\ProLimits;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts::app')]
 #[Title('ჩემი სიები')]
+#[Lazy]
 class Index extends Component
 {
+    public function placeholder(): View
+    {
+        return view('livewire.lists.index-skeleton');
+    }
+
     public string $name = '';
 
     public string $boughtBehavior = 'strike';

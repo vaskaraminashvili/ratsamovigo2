@@ -1,7 +1,10 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportLazyLoading\SupportLazyLoading;
 use Tests\TestCase;
+
+use function Livewire\on;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +20,16 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
+
+// Lazy pages would only render their skeleton; the tests assert on the real page. Livewire
+// switches its "no lazy loading" flag back off whenever it flushes state, so set it again each time.
+// A test can opt back in with config(['testing.lazy_pages' => true]).
+pest()->beforeEach(function () {
+    $disableLazyLoading = fn () => config('testing.lazy_pages') ? null : SupportLazyLoading::disableWhileTesting();
+
+    $disableLazyLoading();
+    on('flush-state', $disableLazyLoading);
+})->in('Feature');
 
 /*
 |--------------------------------------------------------------------------

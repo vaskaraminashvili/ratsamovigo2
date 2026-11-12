@@ -24,12 +24,14 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Lazy;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts::list')]
+#[Lazy]
 class Show extends Component
 {
     use ThrottlesActions;
@@ -39,6 +41,11 @@ class Show extends Component
     public ShoppingList $shoppingList;
 
     public ?TemporaryUploadedFile $cover = null;
+
+    public function placeholder(): View
+    {
+        return view('livewire.lists.show-skeleton');
+    }
 
     public function updatedCover(): void
     {
