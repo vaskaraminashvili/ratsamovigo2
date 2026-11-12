@@ -28,6 +28,9 @@ class SavedItem extends Model
         static::saving(function (SavedItem $saved): void {
             $saved->name_key = static::keyFor($saved->name);
         });
+
+        static::saved(fn (SavedItem $saved) => User::forgetCatalogCache($saved->user_id));
+        static::deleted(fn (SavedItem $saved) => User::forgetCatalogCache($saved->user_id));
     }
 
     /**

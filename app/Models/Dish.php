@@ -20,6 +20,12 @@ class Dish extends Model
     /** @use HasFactory<DishFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::saved(fn (Dish $dish) => User::forgetCatalogCache($dish->user_id));
+        static::deleted(fn (Dish $dish) => User::forgetCatalogCache($dish->user_id));
+    }
+
     /**
      * @return BelongsTo<User, $this>
      */

@@ -21,6 +21,14 @@ class DishIngredient extends Model
     /** @use HasFactory<DishIngredientFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        $flush = fn (DishIngredient $ingredient) => User::forgetCatalogCache(Dish::whereKey($ingredient->dish_id)->value('user_id'));
+
+        static::saved($flush);
+        static::deleted($flush);
+    }
+
     /**
      * @return array<string, string>
      */
