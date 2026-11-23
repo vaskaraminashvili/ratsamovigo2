@@ -183,6 +183,16 @@
         </label>
     </section>
 
+    {{-- This device: browser push, needs the app on the Home Screen on iPhone --}}
+    <section class="mt-10" aria-labelledby="push-h" x-data="pushSettings(@js(config('webpush.vapid.public_key')))" x-init="init()">
+        <h2 id="push-h" class="text-lg font-bold">ეს მოწყობილობა</h2>
+        <div class="mt-3 flex flex-col items-start gap-3 rounded-2xl border border-ink-700 p-3.5">
+            <p class="text-[13px] text-ink-400" role="status" aria-live="polite" x-text="message"></p>
+            <button type="button" x-show="status === 'off' || status === 'error'" x-cloak @click="enable()" :disabled="busy" class="btn-primary min-h-11">ჩართვა</button>
+            <button type="button" x-show="status === 'on'" x-cloak @click="disable()" :disabled="busy" class="btn-ghost min-h-11">გამორთვა</button>
+        </div>
+    </section>
+
     {{-- Account --}}
     <section class="mt-10" aria-labelledby="account-h">
         <h2 id="account-h" class="text-lg font-bold">ანგარიში</h2>

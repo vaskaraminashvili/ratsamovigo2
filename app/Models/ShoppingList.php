@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BoughtBehavior;
 use App\Notifications\ListActivityNotification;
+use App\Notifications\ListPushNotification;
 use App\Support\CoverImage;
 use Database\Factories\ShoppingListFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -73,6 +74,12 @@ class ShoppingList extends Model
 
         if ($recipients->isNotEmpty()) {
             Notification::send($recipients, new ListActivityNotification($this, $actor, $message));
+        }
+
+        $pushRecipients = $recipients->filter(fn (User $recipient) => $recipient->pushSubscriptions()->exists());
+
+        if ($pushRecipients->isNotEmpty()) {
+            Notification::send($pushRecipients, new ListPushNotification($this, $this->name, $message));
         }
     }
 

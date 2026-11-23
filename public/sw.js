@@ -4,7 +4,7 @@
  *  - Anything else offline falls back to /offline.html.
  * Livewire updates (POST) and cross-origin requests are never touched.
  */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const ASSETS = `rw-assets-${VERSION}`;
 const PAGES = `rw-pages-${VERSION}`;
 const OFFLINE_URL = '/offline.html';
@@ -29,6 +29,44 @@ self.addEventListener('message', (event) => {
     if (event.data === 'clear-pages') {
         event.waitUntil(caches.delete(PAGES));
     }
+});
+
+/* Device push. The server sends title, body, icon and data.url (see ListPushNotification). */
+self.addEventListener('push', (event) => {
+    let payload = {};
+
+    try {
+        payload = event.data ? event.data.json() : {};
+    } catch (error) {
+        payload = {};
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title || 'რა წამოვიღო?', {
+            body: payload.body || '',
+            icon: payload.icon || '/icons/icon-192.png',
+            tag: payload.tag,
+            data: { url: payload.data?.url || '/lists' },
+        }),
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const url = event.notification.data?.url || '/lists';
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+            const client = clients.find((candidate) => new URL(candidate.url).origin === self.location.origin);
+
+            if (client) {
+                return client.focus().then((focused) => ('navigate' in focused ? focused.navigate(url) : focused));
+            }
+
+            return self.clients.openWindow(url);
+        }),
+    );
 });
 
 self.addEventListener('fetch', (event) => {

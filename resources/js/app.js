@@ -1,3 +1,5 @@
+import './push';
+
 /**
  * Alpine state for the single list screen. Drafts (new item, edit item) live on the
  * client so the quantity stepper is instant; Livewire is only called on submit.

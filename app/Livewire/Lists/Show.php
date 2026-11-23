@@ -14,6 +14,7 @@ use App\Models\SavedItem;
 use App\Models\ShoppingList;
 use App\Models\User;
 use App\Notifications\GoingToStoreNotification;
+use App\Notifications\ListPushNotification;
 use App\Support\CoverImage;
 use App\Support\ListActivity;
 use App\Support\ProductSearch;
@@ -457,6 +458,10 @@ class Show extends Component
 
         Notification::sendNow($recipients, $notification, ['database']);
         Notification::send($recipients, $notification);
+        Notification::send(
+            $recipients,
+            new ListPushNotification($this->shoppingList, auth()->user()->name.' მაღაზიაში მიდის', $validated['message']),
+        );
 
         $this->shoppingList->update(['shopping_by' => auth()->id(), 'shopping_started_at' => now()]);
 

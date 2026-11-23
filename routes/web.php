@@ -3,6 +3,7 @@
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\JoinListController;
 use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
@@ -34,4 +35,6 @@ Route::middleware('auth')->group(function () {
     // The page loads lazily, so access is checked here to keep the 403 on the first request.
     Route::get('/lists/{shoppingList}', ListsShow::class)->middleware('can:view,shoppingList')->name('lists.show');
     Route::get('/settings/profile', Profile::class)->name('settings.profile');
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->middleware('throttle:20,1')->name('push-subscriptions.store');
+    Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->middleware('throttle:20,1')->name('push-subscriptions.destroy');
 });
